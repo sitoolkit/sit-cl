@@ -30,7 +30,7 @@
       <arg value="-Dbt.target=README_ja.md:README.md" />
     </exec>
 
-    <replace file="README_ja.md" token="[English](README.md)" value="【日本語】(README_ja.md)"/>
+    <replace file="README_ja.md" token="[English](README.md)" value="[日本語](README_ja.md)"/>
   </target>
 
 </project>

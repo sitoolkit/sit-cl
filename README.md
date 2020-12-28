@@ -1,4 +1,4 @@
-【日本語】(README_ja.md)
+[日本語](README_ja.md)
 
 # CSV Loader
 
