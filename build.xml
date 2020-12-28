@@ -26,11 +26,11 @@
 
   <target name="translate-readme">
     <exec executable="${mvn.cmd}" dir="${basedir}" failonerror="true">
-      <arg line="sit-bt:translate -Dbt.mode=en2ja" />
-      <arg value="-Dbt.target=&quot;README.md-&gt;README_ja.md&quot;" />
+      <arg line="sit-bt:translate -Dbt.mode=ja2en" />
+      <arg value="-Dbt.target=README_ja.md:README.md" />
     </exec>
 
-    <replace file="README_ja.md" token="【日本語】(README_ja.md)" value="[English](README.md)"/>
+    <replace file="README_ja.md" token="[English](README.md)" value="【日本語】(README_ja.md)"/>
   </target>
 
 </project>
