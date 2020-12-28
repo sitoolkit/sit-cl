@@ -35,6 +35,8 @@ public class CsvLoader {
 
     List<String> tableNames = readLines(tableList);
 
+    String idenfifierQuateString = connection.getMetaData().getIdentifierQuoteString();
+
     for (String tableName : tableNames) {
       TabbleMetaData metaData = extractMetaData(connection, tableName);
 
@@ -44,7 +46,7 @@ public class CsvLoader {
 
       try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
 
-        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames());
+        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), idenfifierQuateString);
 
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
@@ -79,14 +81,16 @@ public class CsvLoader {
     return lines;
   }
 
-  static String buildInsertStatement(String tableName, List<String> columnNames) {
+  static String buildInsertStatement(String tableName, List<String> columnNames, String idenfifierQuateString) {
 
     StringJoiner columns = new StringJoiner(",");
     StringJoiner values = new StringJoiner(",");
 
-    columnNames.stream().peek(columns::add).forEachOrdered(r -> values.add("?"));
+    columnNames.stream().map(columnName -> idenfifierQuateString + columnName + idenfifierQuateString)
+        .peek(columns::add).forEachOrdered(r -> values.add("?"));
 
-    return String.format("INSERT INTO %1s (%2s) VALUES (%3s)", tableName, columns.toString(), values.toString());
+    return String.format("INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)", idenfifierQuateString, tableName,
+        columns.toString(), values.toString());
   }
 
   static void executeStatement(Connection connection, String statement, CSVParser csvParser, TabbleMetaData metaData)
