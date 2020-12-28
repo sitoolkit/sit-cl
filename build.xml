@@ -1,0 +1,36 @@
+<project xmlns:if="ant:if" xmlns:unless="ant:unless" name="sit-csvloader" basedir="." default="install">
+
+  <condition property="mvn.cmd" value="${basedir}\mvnw.cmd" else="${basedir}\mvnw">
+    <os family="windows" />
+  </condition>
+
+  
+  <target name="set-version">
+
+    <property name="version" value="0.8-SNAPSHOT"/>
+
+    <exec executable="${mvn.cmd}">
+      <arg line="versions:set -DnewVersion=${version} -DgenerateBackupPoms=false" />
+    </exec>
+
+    <replaceregexp file="README.md"
+                   match="-DarchetypeVersion=.* "
+                   replace="-DarchetypeVersion=${version} " />
+
+    <replaceregexp file="README_ja.md"
+                   match="-DarchetypeVersion=.* "
+                   replace="-DarchetypeVersion=${version} " />
+
+  </target>
+
+
+  <target name="translate-readme">
+    <exec executable="${mvn.cmd}" dir="${basedir}" failonerror="true">
+      <arg line="sit-bt:translate -Dbt.mode=en2ja" />
+      <arg value="-Dbt.target=&quot;README.md-&gt;README_ja.md&quot;" />
+    </exec>
+
+    <replace file="README_ja.md" token="【日本語】(README_ja.md)" value="[English](README.md)"/>
+  </target>
+
+</project>

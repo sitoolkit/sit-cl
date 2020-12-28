@@ -17,6 +17,28 @@
     <maven.compiler.target>11</maven.compiler.target>
   </properties>
 
+  <!-- Build Settings -->
+  <build>
+    <defaultGoal>antrun:run</defaultGoal>
+
+    <plugins>
+      <plugin>
+        <groupId>io.sitoolkit.bt</groupId>
+        <artifactId>sit-bt-maven-plugin</artifactId>
+        <version>0.9-SNAPSHOT</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <target>
+            <ant antfile="build.xml" target="${ant.target}" />
+          </target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <!-- More Project Information -->
   <name>CSV Loader</name>
