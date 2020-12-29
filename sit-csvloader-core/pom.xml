@@ -98,6 +98,9 @@
                     <ports>
                       <port>15432:5432</port>
                     </ports>
+                    <wait>
+                      <time>2000</time>
+                    </wait>
                   </run>
                 </image>
               </images>
