@@ -7,7 +7,7 @@
   
   <target name="set-version">
 
-    <property name="version" value="0.8-SNAPSHOT"/>
+    <property name="version" value="0.8"/>
 
     <exec executable="${mvn.cmd}">
       <arg line="versions:set -DnewVersion=${version} -DgenerateBackupPoms=false" />
