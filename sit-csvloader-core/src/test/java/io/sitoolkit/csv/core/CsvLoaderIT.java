@@ -2,15 +2,16 @@ package io.sitoolkit.csv.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.Types;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
 
-public class CsvLoaderTests {
+public class CsvLoaderIT {
 
   @Test
   void loadTest() throws Exception {
@@ -21,7 +22,9 @@ public class CsvLoaderTests {
     Connection connection = DriverManager.getConnection(prop.getProperty("url"), prop.getProperty("user"),
         prop.getProperty("password"));
 
-    connection.createStatement().executeUpdate("CREATE TABLE \"ORDER\" (\"FROM\" INT, COL_VARCHAR VARCHAR)");
+    String createTable = Files.readString(Path.of(getClass().getResource("CREATE_TABLE.sql").toURI()));
+
+    connection.createStatement().executeUpdate(createTable);
 
     CsvLoader.load(connection, getClass(), (line) -> System.out.println(line));
 
@@ -30,6 +33,7 @@ public class CsvLoaderTests {
     while (rs.next()) {
       assertEquals(1, rs.getInt("FROM"));
       assertEquals("one", rs.getString("COL_VARCHAR"));
+      assertEquals("2020-12-29", rs.getString("COL_DATE"));
     }
   }
 }

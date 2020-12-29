@@ -2,13 +2,18 @@ package io.sitoolkit.csv.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -38,7 +43,7 @@ public class CsvLoader {
     String idenfifierQuateString = connection.getMetaData().getIdentifierQuoteString();
 
     for (String tableName : tableNames) {
-      TabbleMetaData metaData = extractMetaData(connection, tableName);
+      TabbleMetaData metaData = extractMetaData(connection, tableName, log);
 
       URL csvFile = migrationClass.getResource(migrationClass.getSimpleName() + "/" + tableName + ".csv");
 
@@ -54,7 +59,7 @@ public class CsvLoader {
     }
   }
 
-  static TabbleMetaData extractMetaData(Connection connection, String tableName) throws SQLException {
+  static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log) throws SQLException {
     TabbleMetaData metaData = new TabbleMetaData();
 
     try (ResultSet rs = connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
@@ -64,6 +69,7 @@ public class CsvLoader {
       }
     }
 
+    log.info("Extracted " + tableName + " : " + metaData);
     return metaData;
   }
 
@@ -100,15 +106,30 @@ public class CsvLoader {
         int i = 1;
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = record.get(columnName);
+          int columnIndex = i++;
 
           switch (metaData.getDataType(columnName)) {
+            case Types.SMALLINT:
             case Types.INTEGER:
-              pstmt.setInt(i++, Integer.parseInt(cellValue));
+            case Types.BIGINT:
+              pstmt.setLong(columnIndex, Long.parseLong(cellValue));
               break;
-            case Types.VARCHAR:
-              pstmt.setString(i++, cellValue);
+            case Types.NUMERIC:
+            case Types.DECIMAL:
+              pstmt.setBigDecimal(columnIndex, new BigDecimal(cellValue));
+              break;
+            case Types.DOUBLE:
+            case Types.FLOAT:
+              pstmt.setDouble(columnIndex, Double.parseDouble(cellValue));
+              break;
+            case Types.DATE:
+              pstmt.setDate(columnIndex, Date.valueOf(LocalDate.parse(cellValue)));
+              break;
+            case Types.TIMESTAMP:
+              pstmt.setTimestamp(columnIndex, Timestamp.valueOf(LocalDateTime.parse(cellValue)));
               break;
             default:
+              pstmt.setString(columnIndex, cellValue);
           }
 
         }

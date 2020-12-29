@@ -39,4 +39,88 @@
     <version>0.8-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
+
+  <properties>
+    <jdbc.password>sa</jdbc.password>
+    <jdbc.url>jdbc:h2:mem:test</jdbc.url>
+    <jdbc.user>sa</jdbc.user>
+  </properties>
+
+
+  <!-- Build Settings -->
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+  </build>
+
+  <!-- Environment Settings -->
+  <profiles>
+    <profile>
+      <id>postgres</id>
+
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>42.2.18</version>
+          <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+      <properties>
+        <jdbc.password>postgres</jdbc.password>
+        <jdbc.url>jdbc:postgresql://localhost:15432/postgres</jdbc.url>
+        <jdbc.user>postgres</jdbc.user>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>0.34.1</version>
+            <configuration>
+              <images>
+                <image>
+                  <name>postgres</name>
+                  <run>
+                    <env>
+                      <POSTGRES_PASSWORD>postgres</POSTGRES_PASSWORD>
+                    </env>
+                    <ports>
+                      <port>15432:5432</port>
+                    </ports>
+                  </run>
+                </image>
+              </images>
+            </configuration>
+            <executions>
+              <execution>
+                <id>start</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
