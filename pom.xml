@@ -4,7 +4,7 @@
   <!-- The Basics -->
   <groupId>io.sitoolkit.csv</groupId>
   <artifactId>sit-csvloader</artifactId>
-  <version>0.8</version>
+  <version>0.9-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <modules>
