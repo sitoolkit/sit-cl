@@ -55,16 +55,38 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>0.34.1</version>
+          <executions>
+            <execution>
+              <id>start</id>
+              <phase>pre-integration-test</phase>
+              <goals>
+                <goal>start</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>stop</id>
+              <phase>post-integration-test</phase>
+              <goals>
+                <goal>stop</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
   </build>
 
   <!-- Environment Settings -->
   <profiles>
     <profile>
       <id>postgres</id>
-
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
 
       <dependencies>
         <dependency>
@@ -73,7 +95,7 @@
           <version>42.2.18</version>
           <scope>test</scope>
         </dependency>
-    </dependencies>
+      </dependencies>
 
       <properties>
         <jdbc.password>postgres</jdbc.password>
@@ -86,7 +108,6 @@
           <plugin>
             <groupId>io.fabric8</groupId>
             <artifactId>docker-maven-plugin</artifactId>
-            <version>0.34.1</version>
             <configuration>
               <images>
                 <image>
@@ -99,28 +120,68 @@
                       <port>15432:5432</port>
                     </ports>
                     <wait>
-                      <time>2000</time>
+                      <time>5000</time>
+                      <log>.*database system is ready to accept connections$</log>
                     </wait>
                   </run>
                 </image>
               </images>
             </configuration>
-            <executions>
-              <execution>
-                <id>start</id>
-                <phase>pre-integration-test</phase>
-                <goals>
-                  <goal>start</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>stop</id>
-                <phase>post-integration-test</phase>
-                <goals>
-                  <goal>stop</goal>
-                </goals>
-              </execution>
-            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>mysql</id>
+
+      <dependencies>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>8.0.22</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+
+      <properties>
+        <jdbc.password>root</jdbc.password>
+        <jdbc.url>jdbc:mysql://localhost:13306/mysql?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;allowMultiQueries=true</jdbc.url>
+        <jdbc.user>root</jdbc.user>
+      </properties>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <configuration>
+              <images>
+                <image>
+                  <name>mysql</name>
+                  <run>
+                    <env>
+                      <MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+                    </env>
+                    <ports>
+                      <port>13306:3306</port>
+                    </ports>
+                    <wait>
+                      <time>30000</time>
+                      <!-- this make the thread wait only about 10 ms -->
+                      <!-- <tcp>
+                        <mode>mapped</mode>
+                        <host>localhost</host>
+                        <ports>
+                          <port>3306</port>
+                        </ports>
+                      </tcp> -->
+                      <log>.*/usr/sbin/mysqld: ready for connections.*port: 3306.*</log>
+                    </wait>
+                  </run>
+                </image>
+              </images>
+            </configuration>
           </plugin>
         </plugins>
       </build>

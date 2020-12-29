@@ -23,12 +23,14 @@ public class CsvLoaderIT {
         prop.getProperty("password"));
 
     String createTable = Files.readString(Path.of(getClass().getResource("CREATE_TABLE.sql").toURI()));
-
+    String idenfifierQuateString = connection.getMetaData().getIdentifierQuoteString();
+    createTable = createTable.replace("\"", idenfifierQuateString);
     connection.createStatement().executeUpdate(createTable);
 
     CsvLoader.load(connection, getClass(), (line) -> System.out.println(line));
 
-    ResultSet rs = connection.createStatement().executeQuery("SELECT * FROM \"ORDER\"");
+    String selectFronOrder = "SELECT * FROM \"ORDER\"".replace("\"", connection.getMetaData().getIdentifierQuoteString());
+    ResultSet rs = connection.createStatement().executeQuery(selectFronOrder);
 
     while (rs.next()) {
       assertEquals(1, rs.getInt("FROM"));
