@@ -15,6 +15,7 @@ import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.StringJoiner;
@@ -100,10 +101,16 @@ public class CsvLoader {
   }
 
   static void executeStatement(Connection connection, String statement, CSVParser csvParser, TabbleMetaData metaData)
-      throws SQLException, IOException {
+      throws SQLException {
     try (PreparedStatement pstmt = connection.prepareStatement(statement)) {
-      for (CSVRecord record : csvParser.getRecords()) {
+
+      Iterator<CSVRecord> itr = csvParser.iterator();
+
+      while(itr.hasNext()) {
+
+        CSVRecord record = itr.next();
         int i = 1;
+        
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = record.get(columnName);
           int columnIndex = i++;
