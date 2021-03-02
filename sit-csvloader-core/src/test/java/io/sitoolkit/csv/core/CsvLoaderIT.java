@@ -36,6 +36,7 @@ public class CsvLoaderIT {
       assertEquals(1, rs.getInt("FROM"));
       assertEquals("one", rs.getString("COL_VARCHAR"));
       assertEquals("2020-12-29", rs.getString("COL_DATE"));
+      assertEquals("12:30:00", rs.getString("COL_TIME"));
     }
   }
 }

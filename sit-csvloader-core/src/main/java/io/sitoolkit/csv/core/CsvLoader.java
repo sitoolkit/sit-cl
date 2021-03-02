@@ -10,10 +10,12 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +68,12 @@ public class CsvLoader {
     try (ResultSet rs = connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
 
       while (rs.next()) {
-        metaData.addDataType(rs.getString("COLUMN_NAME"), rs.getInt("DATA_TYPE"));
+        metaData.addDataType(
+          rs.getString("COLUMN_NAME"), 
+          metaData.new TypeDetail(
+            rs.getInt("DATA_TYPE"),
+            rs.getString("TYPE_NAME"))
+        );
       }
     }
 
@@ -134,6 +141,16 @@ public class CsvLoader {
               break;
             case Types.TIMESTAMP:
               pstmt.setTimestamp(columnIndex, Timestamp.valueOf(LocalDateTime.parse(cellValue)));
+              break;
+            case Types.TIME:
+              pstmt.setTime(columnIndex, Time.valueOf(LocalTime.parse(cellValue)));
+              break;
+            case Types.OTHER:
+              if ("json".equals(metaData.getTypeName(columnName))) {
+                pstmt.setObject(columnIndex, cellValue, Types.OTHER);
+              } else {
+                pstmt.setString(columnIndex, cellValue);
+              }
               break;
             default:
               pstmt.setString(columnIndex, cellValue);
