@@ -146,7 +146,8 @@ public class CsvLoader {
               pstmt.setTime(columnIndex, Time.valueOf(LocalTime.parse(cellValue)));
               break;
             case Types.OTHER:
-              if ("json".equals(metaData.getTypeName(columnName))) {
+              if (matchsPostgreSQLJsonColumn(connection.getMetaData().getDatabaseProductName(),
+                  metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {
                 pstmt.setString(columnIndex, cellValue);
@@ -162,4 +163,10 @@ public class CsvLoader {
       pstmt.executeBatch();
     }
   }
+
+  static boolean matchsPostgreSQLJsonColumn(String databaseName, String columnTypeName) {
+    return ("PostgreSQL".equalsIgnoreCase(databaseName)
+        && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
+  }
+
 }
