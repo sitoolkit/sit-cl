@@ -146,7 +146,7 @@ public class CsvLoader {
               pstmt.setTime(columnIndex, Time.valueOf(LocalTime.parse(cellValue)));
               break;
             case Types.OTHER:
-              if (matchsPostgreSQLJsonColumn(connection.getMetaData().getDatabaseProductName(),
+              if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
                   metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {
@@ -164,7 +164,7 @@ public class CsvLoader {
     }
   }
 
-  static boolean matchsPostgreSQLJsonColumn(String databaseName, String columnTypeName) {
+  static boolean isPgJsonColumn(String databaseName, String columnTypeName) {
     return ("PostgreSQL".equalsIgnoreCase(databaseName)
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
   }
