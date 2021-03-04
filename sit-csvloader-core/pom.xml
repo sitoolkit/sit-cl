@@ -115,6 +115,7 @@
                   <run>
                     <env>
                       <POSTGRES_PASSWORD>postgres</POSTGRES_PASSWORD>
+                      <TZ>Asia/Tokyo</TZ>
                     </env>
                     <ports>
                       <port>15432:5432</port>
@@ -162,6 +163,7 @@
                   <run>
                     <env>
                       <MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+                      <TZ>Asia/Tokyo</TZ>
                     </env>
                     <ports>
                       <port>13306:3306</port>
