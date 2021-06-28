@@ -150,7 +150,7 @@ public class CsvLoader {
               break;
             case Types.OTHER:
               if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
-                metaData.getTypeName(columnName))) {
+                  metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {
                 pstmt.setString(columnIndex, cellValue);
