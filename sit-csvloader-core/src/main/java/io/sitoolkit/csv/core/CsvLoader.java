@@ -68,12 +68,8 @@ public class CsvLoader {
     try (ResultSet rs = connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
 
       while (rs.next()) {
-        metaData.addDataType(
-          rs.getString("COLUMN_NAME"), 
-          metaData.new TypeDetail(
-            rs.getInt("DATA_TYPE"),
-            rs.getString("TYPE_NAME"))
-        );
+        metaData.addDataType(rs.getString("COLUMN_NAME"),
+            metaData.new TypeDetail(rs.getInt("DATA_TYPE"), rs.getString("TYPE_NAME")));
       }
     }
 
@@ -113,11 +109,11 @@ public class CsvLoader {
 
       Iterator<CSVRecord> itr = csvParser.iterator();
 
-      while(itr.hasNext()) {
+      while (itr.hasNext()) {
 
         CSVRecord record = itr.next();
         int i = 1;
-        
+
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = record.get(columnName);
           int columnIndex = i++;
@@ -145,9 +141,11 @@ public class CsvLoader {
             case Types.TIME:
               pstmt.setTime(columnIndex, Time.valueOf(LocalTime.parse(cellValue)));
               break;
+            case Types.BINARY:
+              pstmt.setBytes(columnIndex, cellValue.getBytes());
+              break;
             case Types.OTHER:
-              if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
-                  metaData.getTypeName(columnName))) {
+              if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(), metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {
                 pstmt.setString(columnIndex, cellValue);
