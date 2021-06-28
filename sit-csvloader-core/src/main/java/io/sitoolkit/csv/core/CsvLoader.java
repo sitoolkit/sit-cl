@@ -117,7 +117,7 @@ public class CsvLoader {
 
         CSVRecord record = itr.next();
         int i = 1;
-
+        
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = record.get(columnName);
           int columnIndex = i++;
@@ -149,8 +149,8 @@ public class CsvLoader {
               pstmt.setBytes(columnIndex, cellValue.getBytes());
               break;
             case Types.OTHER:
-            if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
-            metaData.getTypeName(columnName))) {
+              if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
+                metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {
                 pstmt.setString(columnIndex, cellValue);
