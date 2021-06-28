@@ -145,6 +145,9 @@ public class CsvLoader {
             case Types.TIME:
               pstmt.setTime(columnIndex, Time.valueOf(LocalTime.parse(cellValue)));
               break;
+            case Types.BINARY:
+              pstmt.setBytes(columnIndex, cellValue.getBytes());
+              break;
             case Types.OTHER:
               if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
                   metaData.getTypeName(columnName))) {
