@@ -149,7 +149,13 @@ public class CsvLoader {
               pstmt.setBytes(columnIndex, cellValue.getBytes());
               break;
             case Types.BOOLEAN:
-              pstmt.setBoolean(columnIndex, Boolean.valueOf(cellValue));
+              if (isPgBoolColumn(
+                  connection.getMetaData().getDatabaseProductName(),
+                  metaData.getTypeName(columnName))) {
+                pstmt.setObject(columnIndex, cellValue, Types.OTHER);
+              } else {
+                pstmt.setBoolean(columnIndex, Boolean.valueOf(cellValue));
+              }
               break;
             case Types.OTHER:
               if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
@@ -175,4 +181,8 @@ public class CsvLoader {
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
   }
 
+  static boolean isPgBoolColumn(String databaseName, String columnTypeName) {
+    return "PostgreSQL".equalsIgnoreCase(databaseName)
+        && "boolean".equalsIgnoreCase(columnTypeName);
+  }
 }
