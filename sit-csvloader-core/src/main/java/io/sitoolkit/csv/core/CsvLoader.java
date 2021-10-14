@@ -175,4 +175,5 @@ public class CsvLoader {
     return ("PostgreSQL".equalsIgnoreCase(databaseName)
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
   }
+
 }
