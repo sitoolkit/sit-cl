@@ -149,6 +149,7 @@ public class CsvLoader {
               pstmt.setBytes(columnIndex, cellValue.getBytes());
               break;
             case Types.BOOLEAN:
+            case Types.BIT:
               pstmt.setBoolean(columnIndex, Boolean.valueOf(cellValue));
               break;
             case Types.OTHER:
