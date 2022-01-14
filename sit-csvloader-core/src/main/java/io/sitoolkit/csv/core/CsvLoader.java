@@ -1,5 +1,6 @@
 package io.sitoolkit.csv.core;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -37,28 +38,70 @@ public class CsvLoader {
 
   public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
+    load(connection, migrationClass, log, (String) null);
+  }
 
-    URL tableList = migrationClass.getResource(migrationClass.getSimpleName() + "/table-list.txt");
-    log.info("Reading table list : " + tableList);
+  public static void load(
+      Connection connection, Class<?> migrationClass, LogCallback log, String... locations)
+      throws IOException, SQLException {
 
-    List<String> tableNames = readLines(tableList);
+    List<URL> tableLists = new ArrayList<>();
+    List<String> resourceDirList = new ArrayList<>();
+    String versionName = null;
 
-    String idenfifierQuateString = connection.getMetaData().getIdentifierQuoteString();
+    for (String location : locations) {
+      String resourceDir = location == null || location.isEmpty()
+          ? migrationClass.getSimpleName()
+          : location + "/" + migrationClass.getSimpleName();
+      versionName = migrationClass.getSimpleName();
+      if (migrationClass.getResource(resourceDir) != null) {
+        resourceDirList.add(resourceDir);
+      }
+      if (migrationClass.getResource(resourceDir + "/table-list.txt") != null) {
+        tableLists.add(migrationClass.getResource(resourceDir + "/table-list.txt"));
+      }
+    }
+
+    if (tableLists.size() > 1) {
+      StringBuilder sb = new StringBuilder();
+      String message = "Found more than one tableList with version name " + versionName + "\nOffenders:\n";
+      sb.append(message);
+      for (URL tableList : tableLists) {
+        sb.append("-> ").append(tableList.toString()).append('\n');
+      }
+      throw new IOException(sb.toString());
+    }
+
+    log.info("Reading table list : " + tableLists.get(0));
+
+    List<String> tableNames = readLines(tableLists.get(0));
+    readCsv(connection, migrationClass, log, tableNames, resourceDirList);
+  }
+
+  static void readCsv(Connection connection, Class<?> migrationClass, LogCallback log, List<String> tableNames,
+      List<String> resourceDirList) throws IOException, SQLException {
+    String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
     for (String tableName : tableNames) {
       TabbleMetaData metaData = extractMetaData(connection, tableName, log);
+      boolean doReadCsv = false;
+      for (String resourceDir : resourceDirList) {
+        URL csvFile = migrationClass.getResource(resourceDir + "/" + tableName + ".csv");
+        if (csvFile == null) {
+          continue;
+        }
+        doReadCsv = true;
+        log.info("Loading csv file : " + csvFile);
 
-      URL csvFile = migrationClass.getResource(migrationClass.getSimpleName() + "/" + tableName + ".csv");
+        try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+          String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), identifierQuoteString);
 
-      log.info("Loading csv file : " + csvFile);
-
-      try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
-
-        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), idenfifierQuateString);
-
-        executeStatement(connection, insertStatement, csvParser, metaData);
+          executeStatement(connection, insertStatement, csvParser, metaData);
+        }
       }
-
+      if (!doReadCsv) {
+        throw new FileNotFoundException("Could not find " + tableName + " csv file");
+      }
     }
   }
 
