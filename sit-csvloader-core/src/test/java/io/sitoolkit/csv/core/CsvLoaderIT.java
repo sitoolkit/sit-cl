@@ -35,9 +35,9 @@ public class CsvLoaderIT {
   void loadTest() throws Exception {
     CsvLoader.load(connection, getClass(), (line) -> System.out.println(line));
 
-    String selectFronOrder = "SELECT * FROM \"ORDER\"".replace("\"",
+    String selectFromOrder = "SELECT * FROM \"ORDER\"".replace("\"",
         connection.getMetaData().getIdentifierQuoteString());
-    ResultSet rs = connection.createStatement().executeQuery(selectFronOrder);
+    ResultSet rs = connection.createStatement().executeQuery(selectFromOrder);
 
     assertTrue(rs.next());
 
@@ -65,20 +65,6 @@ public class CsvLoaderIT {
     assertEquals("2020-12-29", rs.getString("COL_DATE"));
     assertEquals("12:30:00", rs.getString("COL_TIME"));
     assertEquals(true, rs.getBoolean("COL_BOOLEAN"));
-
-    assertFalse(rs.next());
-
-    String selectFromOrder2 = "SELECT * FROM \"ORDER_2\"".replace("\"",
-        connection.getMetaData().getIdentifierQuoteString());
-    rs = connection.createStatement().executeQuery(selectFromOrder2);
-
-    assertTrue(rs.next());
-
-    assertEquals(2, rs.getInt("FROM"));
-    assertEquals("two", rs.getString("COL_VARCHAR"));
-    assertEquals("2022-01-14", rs.getString("COL_DATE"));
-    assertEquals("12:30:00", rs.getString("COL_TIME"));
-    assertEquals(false, rs.getBoolean("COL_BOOLEAN"));
 
     assertFalse(rs.next());
   }

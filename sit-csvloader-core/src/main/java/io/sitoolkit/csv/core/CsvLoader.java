@@ -1,6 +1,5 @@
 package io.sitoolkit.csv.core;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -46,7 +45,7 @@ public class CsvLoader {
       throws IOException, SQLException {
 
     List<URL> tableLists = new ArrayList<>();
-    List<String> resourceDirList = new ArrayList<>();
+    String tableListResourceDir = null;
     String versionName = null;
 
     for (String location : locations) {
@@ -54,10 +53,8 @@ public class CsvLoader {
           ? migrationClass.getSimpleName()
           : location + "/" + migrationClass.getSimpleName();
       versionName = migrationClass.getSimpleName();
-      if (migrationClass.getResource(resourceDir) != null) {
-        resourceDirList.add(resourceDir);
-      }
       if (migrationClass.getResource(resourceDir + "/table-list.txt") != null) {
+        tableListResourceDir = resourceDir;
         tableLists.add(migrationClass.getResource(resourceDir + "/table-list.txt"));
       }
     }
@@ -75,32 +72,17 @@ public class CsvLoader {
     log.info("Reading table list : " + tableLists.get(0));
 
     List<String> tableNames = readLines(tableLists.get(0));
-    readCsv(connection, migrationClass, log, tableNames, resourceDirList);
-  }
-
-  static void readCsv(Connection connection, Class<?> migrationClass, LogCallback log, List<String> tableNames,
-      List<String> resourceDirList) throws IOException, SQLException {
     String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
     for (String tableName : tableNames) {
       TabbleMetaData metaData = extractMetaData(connection, tableName, log);
-      boolean doReadCsv = false;
-      for (String resourceDir : resourceDirList) {
-        URL csvFile = migrationClass.getResource(resourceDir + "/" + tableName + ".csv");
-        if (csvFile == null) {
-          continue;
-        }
-        doReadCsv = true;
-        log.info("Loading csv file : " + csvFile);
+      URL csvFile = migrationClass.getResource(tableListResourceDir + "/" + tableName + ".csv");
+      log.info("Loading csv file : " + csvFile);
 
-        try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
-          String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), identifierQuoteString);
+      try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), identifierQuoteString);
 
-          executeStatement(connection, insertStatement, csvParser, metaData);
-        }
-      }
-      if (!doReadCsv) {
-        throw new FileNotFoundException("Could not find " + tableName + " csv file");
+        executeStatement(connection, insertStatement, csvParser, metaData);
       }
     }
   }
