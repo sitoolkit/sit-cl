@@ -14,7 +14,7 @@ import java.util.Properties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CsvLoaderIT {
+class CsvLoaderIT {
   private Connection connection;
 
   @BeforeEach

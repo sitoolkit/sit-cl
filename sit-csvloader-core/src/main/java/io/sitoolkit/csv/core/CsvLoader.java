@@ -125,8 +125,11 @@ public class CsvLoader {
     StringJoiner columns = new StringJoiner(",");
     StringJoiner values = new StringJoiner(",");
 
-    columnNames.stream().map(columnName -> idenfifierQuateString + columnName + idenfifierQuateString)
-        .peek(columns::add).forEachOrdered(r -> values.add("?"));
+    for (String columnName : columnNames) {
+      String r = idenfifierQuateString + columnName + idenfifierQuateString;
+      columns.add(r);
+      values.add("?");
+    }
 
     return String.format("INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)", idenfifierQuateString, tableName,
         columns.toString(), values.toString());
@@ -140,11 +143,11 @@ public class CsvLoader {
 
       while(itr.hasNext()) {
 
-        CSVRecord record = itr.next();
+        CSVRecord csvRecord = itr.next();
         int i = 1;
         
         for (String columnName : csvParser.getHeaderNames()) {
-          String cellValue = record.get(columnName);
+          String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
 
           switch (metaData.getDataType(columnName)) {
