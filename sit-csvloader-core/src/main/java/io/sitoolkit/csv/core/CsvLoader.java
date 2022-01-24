@@ -1,5 +1,6 @@
 package io.sitoolkit.csv.core;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -44,34 +45,32 @@ public class CsvLoader {
       Connection connection, Class<?> migrationClass, LogCallback log, String... locations)
       throws IOException, SQLException {
 
-    List<URL> tableLists = new ArrayList<>();
+    URL tableListUrl = null;
     String tableListResourceDir = null;
-    String versionName = null;
+    String versionName = migrationClass.getSimpleName();
 
     for (String location : locations) {
       String resourceDir = location == null || location.isEmpty()
-          ? migrationClass.getSimpleName()
-          : location + "/" + migrationClass.getSimpleName();
-      versionName = migrationClass.getSimpleName();
-      if (migrationClass.getResource(resourceDir + "/table-list.txt") != null) {
-        tableListResourceDir = resourceDir;
-        tableLists.add(migrationClass.getResource(resourceDir + "/table-list.txt"));
+          ? versionName
+          : location + "/" + versionName;
+      String tableListPath = resourceDir + "/table-list.txt";
+      if (migrationClass.getResource(tableListPath) == null) {
+        continue;
       }
+      if (tableListUrl != null) {
+        throwMultipleTableListException(versionName, tableListUrl, migrationClass.getResource(tableListPath));
+      }
+      tableListResourceDir = resourceDir;
+      tableListUrl = migrationClass.getResource(tableListPath);
     }
 
-    if (tableLists.size() > 1) {
-      StringBuilder sb = new StringBuilder();
-      String message = "Found more than one tableList with version name " + versionName + "\nOffenders:\n";
-      sb.append(message);
-      for (URL tableList : tableLists) {
-        sb.append("-> ").append(tableList.toString()).append('\n');
-      }
-      throw new IOException(sb.toString());
+    if (tableListUrl == null) {
+      throw new FileNotFoundException("Not found table-list.txt with version name " + versionName);
     }
 
-    log.info("Reading table list : " + tableLists.get(0));
+    log.info("Reading table list : " + tableListUrl);
 
-    List<String> tableNames = readLines(tableLists.get(0));
+    List<String> tableNames = readLines(tableListUrl);
     String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
     for (String tableName : tableNames) {
@@ -85,6 +84,15 @@ public class CsvLoader {
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
     }
+  }
+
+  static void throwMultipleTableListException(String versionName, URL... tableListUrl) throws IOException {
+    StringBuilder sb = new StringBuilder(
+        "Found more than one tableList with version name " + versionName + "\nFiles:\n");
+    for (URL tableList : tableListUrl) {
+      sb.append("-> ").append(tableList.toString()).append('\n');
+    }
+    throw new IOException(sb.toString());
   }
 
   static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log) throws SQLException {
