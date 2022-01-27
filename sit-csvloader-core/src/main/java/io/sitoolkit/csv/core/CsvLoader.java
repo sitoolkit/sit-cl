@@ -29,6 +29,7 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CsvLoader {
 
+  private static final String TABLE_LIST_FILE_NAME = "table-list.txt";
   private static final CSVFormat DEFAULT_FORMAT = CSVFormat.DEFAULT.withSystemRecordSeparator()
       .withFirstRecordAsHeader();
 
@@ -36,37 +37,11 @@ public class CsvLoader {
     // NOP
   }
 
-  public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
-      throws IOException, SQLException {
-    load(connection, migrationClass, log, (String) null);
-  }
-
   public static void load(
       Connection connection, Class<?> migrationClass, LogCallback log, String... locations)
       throws IOException, SQLException {
-
-    URL tableListUrl = null;
-    String tableListResourceDir = null;
-    String versionName = migrationClass.getSimpleName();
-
-    for (String location : locations) {
-      String resourceDir = location == null || location.isEmpty()
-          ? versionName
-          : location + "/" + versionName;
-      String tableListPath = resourceDir + "/table-list.txt";
-      if (migrationClass.getResource(tableListPath) == null) {
-        continue;
-      }
-      if (tableListUrl != null) {
-        throwMultipleTableListException(versionName, tableListUrl, migrationClass.getResource(tableListPath));
-      }
-      tableListResourceDir = resourceDir;
-      tableListUrl = migrationClass.getResource(tableListPath);
-    }
-
-    if (tableListUrl == null) {
-      throw new FileNotFoundException("Not found table-list.txt with version name " + versionName);
-    }
+    String tableListDirPath = searchTableListDirPath(migrationClass, locations);
+    URL tableListUrl = migrationClass.getResource(tableListDirPath + "/" + TABLE_LIST_FILE_NAME);
 
     log.info("Reading table list : " + tableListUrl);
 
@@ -75,7 +50,7 @@ public class CsvLoader {
 
     for (String tableName : tableNames) {
       TabbleMetaData metaData = extractMetaData(connection, tableName, log);
-      URL csvFile = migrationClass.getResource(tableListResourceDir + "/" + tableName + ".csv");
+      URL csvFile = migrationClass.getResource(tableListDirPath + "/" + tableName + ".csv");
       log.info("Loading csv file : " + csvFile);
 
       try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
@@ -86,11 +61,41 @@ public class CsvLoader {
     }
   }
 
-  static void throwMultipleTableListException(String versionName, URL... tableListUrl) throws IOException {
+  static String searchTableListDirPath(Class<?> migrationClass, String... locations)
+      throws IOException {
+    String versionName = migrationClass.getSimpleName();
+    if (locations.length == 0) {
+      return versionName;
+    }
+
+    String tableListDirPath = null;
+
+    for (String location : locations) {
+      String resourceDir = location + "/" + versionName;
+      URL tableListUrl = migrationClass.getResource(resourceDir + "/" + TABLE_LIST_FILE_NAME);
+      if (tableListUrl == null) {
+        continue;
+      }
+      if (tableListDirPath != null) {
+        throwMultipleTableListException(versionName, tableListDirPath, resourceDir);
+      }
+      tableListDirPath = resourceDir;
+    }
+
+    if (tableListDirPath == null) {
+      throw new FileNotFoundException(
+          "Not found " + TABLE_LIST_FILE_NAME + " with version name " + versionName);
+    }
+
+    return tableListDirPath;
+  }
+
+  static void throwMultipleTableListException(String versionName, String... tableListDirPaths)
+      throws IOException {
     StringBuilder sb = new StringBuilder(
         "Found more than one tableList with version name " + versionName + "\nFiles:\n");
-    for (URL tableList : tableListUrl) {
-      sb.append("-> ").append(tableList.toString()).append('\n');
+    for (String tableList : tableListDirPaths) {
+      sb.append("-> ").append(tableList).append("/").append(TABLE_LIST_FILE_NAME).append('\n');
     }
     throw new IOException(sb.toString());
   }
