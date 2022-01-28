@@ -4,8 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -18,10 +21,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -40,9 +46,14 @@ public class CsvLoader {
   public static void load(
       Connection connection, Class<?> migrationClass, LogCallback log, String... locations)
       throws IOException, SQLException {
-    String tableListDirPath = searchTableListDirPath(migrationClass, locations);
-    URL tableListUrl = migrationClass.getResource(tableListDirPath + "/" + TABLE_LIST_FILE_NAME);
-
+    URL tableListUrl = searchTableListUrl(migrationClass, locations);
+    Path tableListDirPath;
+    try {
+      tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
+    } catch (URISyntaxException e) {
+      throw new IOException(e);
+    }
+    
     log.info("Reading table list : " + tableListUrl);
 
     List<String> tableNames = readLines(tableListUrl);
@@ -50,10 +61,10 @@ public class CsvLoader {
 
     for (String tableName : tableNames) {
       TabbleMetaData metaData = extractMetaData(connection, tableName, log);
-      URL csvFile = migrationClass.getResource(tableListDirPath + "/" + tableName + ".csv");
-      log.info("Loading csv file : " + csvFile);
+      Path csvPath = tableListDirPath.resolve(tableName + ".csv");
+      log.info("Loading csv file : " + csvPath);
 
-      try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+      try (CSVParser csvParser = CSVParser.parse(csvPath, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
         String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), identifierQuoteString);
 
         executeStatement(connection, insertStatement, csvParser, metaData);
@@ -61,41 +72,34 @@ public class CsvLoader {
     }
   }
 
-  static String searchTableListDirPath(Class<?> migrationClass, String... locations)
+  static URL searchTableListUrl(Class<?> migrationClass, String... locations)
       throws IOException {
     String versionName = migrationClass.getSimpleName();
     if (locations.length == 0) {
-      return versionName;
+      return migrationClass.getResource(versionName + "/" + TABLE_LIST_FILE_NAME);
     }
 
-    String tableListDirPath = null;
+    List<URL> tableLists = Arrays.stream(locations)
+        .map(location -> migrationClass.getResource(
+            location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
 
-    for (String location : locations) {
-      String resourceDir = location + "/" + versionName;
-      URL tableListUrl = migrationClass.getResource(resourceDir + "/" + TABLE_LIST_FILE_NAME);
-      if (tableListUrl == null) {
-        continue;
-      }
-      if (tableListDirPath != null) {
-        throwMultipleTableListException(versionName, tableListDirPath, resourceDir);
-      }
-      tableListDirPath = resourceDir;
-    }
-
-    if (tableListDirPath == null) {
+    if (tableLists.isEmpty()) {
       throw new FileNotFoundException(
           "Not found " + TABLE_LIST_FILE_NAME + " with version name " + versionName);
+    } else if (tableLists.size() > 1) {
+      throwMultipleTableListException(versionName, tableLists);
     }
-
-    return tableListDirPath;
+    return tableLists.get(0);
   }
 
-  static void throwMultipleTableListException(String versionName, String... tableListDirPaths)
+  static void throwMultipleTableListException(String versionName, List<URL> tableListUrls)
       throws IOException {
     StringBuilder sb = new StringBuilder(
         "Found more than one tableList with version name " + versionName + "\nFiles:\n");
-    for (String tableList : tableListDirPaths) {
-      sb.append("-> ").append(tableList).append("/").append(TABLE_LIST_FILE_NAME).append('\n');
+    for (URL tableList : tableListUrls) {
+      sb.append("-> ").append(tableList).append('\n');
     }
     throw new IOException(sb.toString());
   }
