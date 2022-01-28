@@ -51,9 +51,9 @@ public class CsvLoader {
     try {
       tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
     } catch (URISyntaxException e) {
-      throw new IOException(e);
+      throw new IllegalArgumentException("Could not parse table-list.txt URL", e);
     }
-    
+
     log.info("Reading table list : " + tableListUrl);
 
     List<String> tableNames = readLines(tableListUrl);
