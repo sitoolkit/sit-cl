@@ -1,6 +1,5 @@
 package io.sitoolkit.csv.core;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -21,13 +20,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -35,7 +31,7 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CsvLoader {
 
-  private static final String TABLE_LIST_FILE_NAME = "table-list.txt";
+  static final String TABLE_LIST_FILE_NAME = "table-list.txt";
   private static final CSVFormat DEFAULT_FORMAT = CSVFormat.DEFAULT.withSystemRecordSeparator()
       .withFirstRecordAsHeader();
 
@@ -43,10 +39,13 @@ public class CsvLoader {
     // NOP
   }
 
-  public static void load(
-      Connection connection, Class<?> migrationClass, LogCallback log, String... locations)
+  public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
-    URL tableListUrl = searchTableListUrl(migrationClass, locations);
+    URL tableListUrl = migrationClass.getResource(migrationClass.getSimpleName() + "/" + TABLE_LIST_FILE_NAME);
+    load(connection, tableListUrl, log);
+  }
+
+  public static void load(Connection connection, URL tableListUrl, LogCallback log) throws IOException, SQLException {
     Path tableListDirPath;
     try {
       tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
@@ -70,38 +69,6 @@ public class CsvLoader {
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
     }
-  }
-
-  static URL searchTableListUrl(Class<?> migrationClass, String... locations)
-      throws IOException {
-    String versionName = migrationClass.getSimpleName();
-    if (locations.length == 0) {
-      return migrationClass.getResource(versionName + "/" + TABLE_LIST_FILE_NAME);
-    }
-
-    List<URL> tableLists = Arrays.stream(locations)
-        .map(location -> migrationClass.getResource(
-            location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
-
-    if (tableLists.isEmpty()) {
-      throw new FileNotFoundException(
-          "Not found " + TABLE_LIST_FILE_NAME + " with version name " + versionName);
-    } else if (tableLists.size() > 1) {
-      throwMultipleTableListException(versionName, tableLists);
-    }
-    return tableLists.get(0);
-  }
-
-  static void throwMultipleTableListException(String versionName, List<URL> tableListUrls)
-      throws IOException {
-    StringBuilder sb = new StringBuilder(
-        "Found more than one tableList with version name " + versionName + "\nFiles:\n");
-    for (URL tableList : tableListUrls) {
-      sb.append("-> ").append(tableList).append('\n');
-    }
-    throw new IOException(sb.toString());
   }
 
   static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log) throws SQLException {

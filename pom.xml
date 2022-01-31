@@ -9,6 +9,7 @@
 
   <modules>
     <module>sit-csvloader-core</module>
+    <module>sit-csvloader-flyway</module>
   </modules>
 
   <properties>

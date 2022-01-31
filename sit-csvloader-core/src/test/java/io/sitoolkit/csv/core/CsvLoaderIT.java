@@ -4,11 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.util.List;
 import java.util.Properties;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +54,8 @@ class CsvLoaderIT {
 
   @Test
   void loadMultipleLocationTest() throws Exception {
-    CsvLoader.load(connection, getClass(), (line) -> System.out.println(line), "one", "two");
+    URL tableListUrl = ResourceFinder.findTableListUrl(getClass(), List.of("one", "two"));
+    CsvLoader.load(connection, tableListUrl, (line) -> System.out.println(line));
 
     String selectFromOrder = "SELECT * FROM \"ORDER\"".replace("\"",
         connection.getMetaData().getIdentifierQuoteString());
