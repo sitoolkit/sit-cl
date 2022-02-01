@@ -19,8 +19,9 @@ public class BaseJavaCsvMigration extends BaseJavaMigration {
     Log log = LogFactory.getLog(getClass());
     List<String> resDirPaths = Arrays.stream(ctx.getConfiguration().getLocations())
         .map(BaseJavaCsvMigration::prefixLocation).collect(Collectors.toList());
-    List<TableDataResource> tableListUrl = ResourceFinder.findTableDataResources(getClass(), resDirPaths);
-    CsvLoader.load(ctx.getConnection(), tableListUrl, log::info);
+    List<TableDataResource> tableDataResources =
+        ResourceFinder.findTableDataResources(getClass(), resDirPaths);
+    CsvLoader.load(ctx.getConnection(), tableDataResources, log::info);
   }
 
   static String prefixLocation(Location location) {
