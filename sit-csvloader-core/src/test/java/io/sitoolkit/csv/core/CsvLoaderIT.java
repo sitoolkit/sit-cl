@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -54,8 +53,8 @@ class CsvLoaderIT {
 
   @Test
   void loadMultipleLocationTest() throws Exception {
-    URL tableListUrl = ResourceFinder.findTableListUrl(getClass(), List.of("one", "two"));
-    CsvLoader.load(connection, tableListUrl, (line) -> System.out.println(line));
+    List<TableDataResource> tableDataResources = ResourceFinder.findTableDataResources(getClass(), List.of("one", "two"));
+    CsvLoader.load(connection, tableDataResources, (line) -> System.out.println(line));
 
     String selectFromOrder = "SELECT * FROM \"ORDER\"".replace("\"",
         connection.getMetaData().getIdentifierQuoteString());

@@ -2,7 +2,7 @@ package io.sitoolkit.csv.flyway;
 
 import io.sitoolkit.csv.core.CsvLoader;
 import io.sitoolkit.csv.core.ResourceFinder;
-import java.net.URL;
+import io.sitoolkit.csv.core.TableDataResource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +19,7 @@ public class BaseJavaCsvMigration extends BaseJavaMigration {
     Log log = LogFactory.getLog(getClass());
     List<String> resDirPaths = Arrays.stream(ctx.getConfiguration().getLocations())
         .map(BaseJavaCsvMigration::prefixLocation).collect(Collectors.toList());
-    URL tableListUrl = ResourceFinder.findTableListUrl(getClass(), resDirPaths);
+    List<TableDataResource> tableListUrl = ResourceFinder.findTableDataResources(getClass(), resDirPaths);
     CsvLoader.load(ctx.getConnection(), tableListUrl, log::info);
   }
 

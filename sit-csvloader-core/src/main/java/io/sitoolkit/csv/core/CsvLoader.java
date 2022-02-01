@@ -1,13 +1,8 @@
 package io.sitoolkit.csv.core;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -22,7 +17,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.StringJoiner;
 
 import org.apache.commons.csv.CSVFormat;
@@ -31,7 +25,6 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CsvLoader {
 
-  static final String TABLE_LIST_FILE_NAME = "table-list.txt";
   private static final CSVFormat DEFAULT_FORMAT = CSVFormat.DEFAULT.withSystemRecordSeparator()
       .withFirstRecordAsHeader();
 
@@ -41,30 +34,22 @@ public class CsvLoader {
 
   public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
-    URL tableListUrl = migrationClass.getResource(migrationClass.getSimpleName() + "/" + TABLE_LIST_FILE_NAME);
-    load(connection, tableListUrl, log);
+    List<TableDataResource> resources = ResourceFinder.findTableDataResources(migrationClass,
+        new ArrayList<>());
+    load(connection, resources, log);
   }
 
-  public static void load(Connection connection, URL tableListUrl, LogCallback log) throws IOException, SQLException {
-    Path tableListDirPath;
-    try {
-      tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Could not parse table-list.txt URL", e);
-    }
-
-    log.info("Reading table list : " + tableListUrl);
-
-    List<String> tableNames = readLines(tableListUrl);
+  public static void load(Connection connection, List<TableDataResource> tableDataResources,
+      LogCallback log) throws IOException, SQLException {
     String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
-    for (String tableName : tableNames) {
-      TabbleMetaData metaData = extractMetaData(connection, tableName, log);
-      Path csvPath = tableListDirPath.resolve(tableName + ".csv");
-      log.info("Loading csv file : " + csvPath);
+    for (TableDataResource tableDataResource : tableDataResources) {
+      TabbleMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
 
-      try (CSVParser csvParser = CSVParser.parse(csvPath, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
-        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), identifierQuoteString);
+      try (CSVParser csvParser = CSVParser.parse(tableDataResource.getCsvPath(),
+          StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+        String insertStatement = buildInsertStatement(tableDataResource.getTableName(),
+            csvParser.getHeaderNames(), identifierQuoteString);
 
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
@@ -88,20 +73,6 @@ public class CsvLoader {
 
     log.info("Extracted " + tableName + " : " + metaData);
     return metaData;
-  }
-
-  static List<String> readLines(URL resource) throws IOException {
-
-    List<String> lines = new ArrayList<>();
-    try (InputStream is = resource.openStream()) {
-      try (Scanner scanner = new Scanner(is)) {
-        while (scanner.hasNextLine()) {
-          lines.add(scanner.nextLine());
-        }
-      }
-    }
-
-    return lines;
   }
 
   static String buildInsertStatement(String tableName, List<String> columnNames, String idenfifierQuateString) {
