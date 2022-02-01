@@ -20,7 +20,7 @@ public class BaseJavaCsvMigration extends BaseJavaMigration {
     List<String> resDirPaths = Arrays.stream(ctx.getConfiguration().getLocations())
         .map(BaseJavaCsvMigration::prefixLocation).collect(Collectors.toList());
     List<TableDataResource> tableDataResources =
-        ResourceFinder.findTableDataResources(getClass(), resDirPaths);
+        ResourceFinder.findTableDataResources(getClass(), resDirPaths, log::info);
     CsvLoader.load(ctx.getConnection(), tableDataResources, log::info);
   }
 

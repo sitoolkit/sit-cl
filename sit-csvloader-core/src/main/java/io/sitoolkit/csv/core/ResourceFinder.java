@@ -3,16 +3,13 @@ package io.sitoolkit.csv.core;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 public class ResourceFinder {
   private static final String TABLE_LIST_FILE_NAME = "table-list.txt";
@@ -22,32 +19,31 @@ public class ResourceFinder {
   }
 
   public static List<TableDataResource> findTableDataResources(Class<?> owner,
-      List<String> resDirPaths) throws IOException {
-    URL tableListUrl = findTableListUrl(owner, resDirPaths);
-    Path tableListDirPath;
-    try {
-      tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Could not parse " + TABLE_LIST_FILE_NAME + " URL", e);
-    }
-    List<String> tableNames = readTableList(tableListUrl);
+      List<String> resDirPaths, LogCallback log) throws IOException {
+    TableListResource tableListResource = findTableListResource(owner, resDirPaths);
+    log.info("Reading table list : " + tableListResource.getTableListUrl());
+    List<String> tableNames = readTableList(tableListResource.getTableListUrl());
     List<TableDataResource> tableDataResources = new ArrayList<>();
     for (String tableName : tableNames) {
-      tableDataResources.add(buildTableDataResource(tableListDirPath, tableName));
+      tableDataResources
+          .add(buildTableDataResource(owner, tableListResource.getTableListDir(), tableName));
     }
     return tableDataResources;
   }
 
-  static URL findTableListUrl(Class<?> owner, List<String> resDirPaths) throws IOException {
+  static TableListResource findTableListResource(Class<?> owner, List<String> resDirPaths)
+      throws IOException {
     String versionName = owner.getSimpleName();
     if (resDirPaths.isEmpty()) {
-      return owner.getResource(versionName + "/" + TABLE_LIST_FILE_NAME);
+      return new TableListResource(owner.getResource(versionName + "/" + TABLE_LIST_FILE_NAME),
+          versionName);
     }
 
-    List<URL> tableLists = resDirPaths.stream()
-        .map(location -> owner.getResource(
-            location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME))
-        .filter(Objects::nonNull)
+    List<TableListResource> tableLists = resDirPaths.stream()
+        .map(location -> new TableListResource(
+            owner.getResource(location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME),
+            location + "/" + versionName))
+        .filter(item -> item.getTableListUrl() != null)
         .collect(Collectors.toList());
 
     if (tableLists.isEmpty()) {
@@ -59,12 +55,12 @@ public class ResourceFinder {
     return tableLists.get(0);
   }
 
-  static void throwMultipleTableListException(String versionName, List<URL> tableListUrls)
-      throws IOException {
+  static void throwMultipleTableListException(String versionName,
+      List<TableListResource> tableListResourceList) throws IOException {
     StringBuilder sb = new StringBuilder(
         "Found more than one tableList with version name " + versionName + "\nFiles:\n");
-    for (URL tableList : tableListUrls) {
-      sb.append("-> ").append(tableList).append('\n');
+    for (TableListResource tableListResource : tableListResourceList) {
+      sb.append("-> ").append(tableListResource.getTableListUrl()).append('\n');
     }
     throw new IOException(sb.toString());
   }
@@ -82,13 +78,21 @@ public class ResourceFinder {
     return lines;
   }
 
-  static TableDataResource buildTableDataResource(Path tableListDirPath, String tableName)
-      throws IOException {
-    Path csvPath = tableListDirPath.resolve(tableName + ".csv");
-    if (!Files.exists(csvPath)) {
-      throw new FileNotFoundException("Not found csv file\nExpected Path:\n-> " + csvPath);
+  static TableDataResource buildTableDataResource(Class<?> owner, String tableListDirPath,
+      String tableName) throws IOException {
+    URL csvUrl = owner.getResource(tableListDirPath + "/" + tableName + ".csv");
+    if (csvUrl == null) {
+      throw new FileNotFoundException(
+          "Not found csv file\nExpected Path:\n-> " + tableListDirPath + "/" + tableName + ".csv");
     }
-    return new TableDataResource(tableName, csvPath);
+    return new TableDataResource(tableName, csvUrl);
   }
 
+  @Data
+  @AllArgsConstructor
+  private static class TableListResource {
+    private URL tableListUrl;
+
+    private String tableListDir;
+  }
 }

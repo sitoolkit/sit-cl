@@ -35,7 +35,7 @@ public class CsvLoader {
   public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
     List<TableDataResource> resources =
-        ResourceFinder.findTableDataResources(migrationClass, new ArrayList<>());
+        ResourceFinder.findTableDataResources(migrationClass, new ArrayList<>(), log);
     load(connection, resources, log);
   }
 
@@ -45,9 +45,9 @@ public class CsvLoader {
 
     for (TableDataResource tableDataResource : tableDataResources) {
       TabbleMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
-
+      log.info("Loading csv file : " + tableDataResource.getCsvUrl());
       try (CSVParser csvParser =
-          CSVParser.parse(tableDataResource.getCsvPath(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+          CSVParser.parse(tableDataResource.getCsvUrl(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
         String insertStatement = buildInsertStatement(tableDataResource.getTableName(),
             csvParser.getHeaderNames(), identifierQuoteString);
 

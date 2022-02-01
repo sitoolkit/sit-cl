@@ -53,7 +53,8 @@ class CsvLoaderIT {
 
   @Test
   void loadMultipleLocationTest() throws Exception {
-    List<TableDataResource> tableDataResources = ResourceFinder.findTableDataResources(getClass(), List.of("one", "two"));
+    List<TableDataResource> tableDataResources = ResourceFinder.findTableDataResources(getClass(),
+        List.of("one", "two"), (line) -> System.out.println(line));
     CsvLoader.load(connection, tableDataResources, (line) -> System.out.println(line));
 
     String selectFromOrder = "SELECT * FROM \"ORDER\"".replace("\"",

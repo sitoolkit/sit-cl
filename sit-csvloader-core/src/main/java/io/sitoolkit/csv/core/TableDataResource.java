@@ -1,6 +1,6 @@
 package io.sitoolkit.csv.core;
 
-import java.nio.file.Path;
+import java.net.URL;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TableDataResource {
   private String tableName;
-  private Path csvPath;
+  private URL csvUrl;
 }
