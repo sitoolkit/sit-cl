@@ -28,7 +28,7 @@ public class ResourceFinder {
     try {
       tableListDirPath = Paths.get(tableListUrl.toURI()).getParent();
     } catch (URISyntaxException e) {
-      throw new IllegalArgumentException("Could not parse table-list.txt URL", e);
+      throw new IllegalArgumentException("Could not parse " + TABLE_LIST_FILE_NAME + " URL", e);
     }
     List<String> tableNames = readTableList(tableListUrl);
     List<TableDataResource> tableDataResources = new ArrayList<>();
