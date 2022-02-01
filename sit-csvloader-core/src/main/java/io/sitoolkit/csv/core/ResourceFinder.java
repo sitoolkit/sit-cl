@@ -52,8 +52,7 @@ public class ResourceFinder {
 
     if (tableLists.isEmpty()) {
       throw new FileNotFoundException(
-          "Not found " + TABLE_LIST_FILE_NAME + " with version name "
-              + versionName);
+          "Not found " + TABLE_LIST_FILE_NAME + " with version name " + versionName);
     } else if (tableLists.size() > 1) {
       throwMultipleTableListException(versionName, tableLists);
     }

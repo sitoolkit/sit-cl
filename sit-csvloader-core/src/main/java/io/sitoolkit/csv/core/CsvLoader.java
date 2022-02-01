@@ -25,8 +25,8 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CsvLoader {
 
-  private static final CSVFormat DEFAULT_FORMAT = CSVFormat.DEFAULT.withSystemRecordSeparator()
-      .withFirstRecordAsHeader();
+  private static final CSVFormat DEFAULT_FORMAT =
+      CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
 
   private CsvLoader() {
     // NOP
@@ -34,8 +34,8 @@ public class CsvLoader {
 
   public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
-    List<TableDataResource> resources = ResourceFinder.findTableDataResources(migrationClass,
-        new ArrayList<>());
+    List<TableDataResource> resources =
+        ResourceFinder.findTableDataResources(migrationClass, new ArrayList<>());
     load(connection, resources, log);
   }
 
@@ -46,8 +46,8 @@ public class CsvLoader {
     for (TableDataResource tableDataResource : tableDataResources) {
       TabbleMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
 
-      try (CSVParser csvParser = CSVParser.parse(tableDataResource.getCsvPath(),
-          StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+      try (CSVParser csvParser =
+          CSVParser.parse(tableDataResource.getCsvPath(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
         String insertStatement = buildInsertStatement(tableDataResource.getTableName(),
             csvParser.getHeaderNames(), identifierQuoteString);
 
