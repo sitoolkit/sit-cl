@@ -1,9 +1,7 @@
 package io.sitoolkit.csv.core;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Date;
@@ -19,7 +17,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.StringJoiner;
 
 import org.apache.commons.csv.CSVFormat;
@@ -28,8 +25,8 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CsvLoader {
 
-  private static final CSVFormat DEFAULT_FORMAT = CSVFormat.DEFAULT.withSystemRecordSeparator()
-      .withFirstRecordAsHeader();
+  private static final CSVFormat DEFAULT_FORMAT =
+      CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
 
   private CsvLoader() {
     // NOP
@@ -37,28 +34,25 @@ public class CsvLoader {
 
   public static void load(Connection connection, Class<?> migrationClass, LogCallback log)
       throws IOException, SQLException {
+    List<TableDataResource> resources =
+        ResourceFinder.findTableDataResources(migrationClass, new ArrayList<>(), log);
+    load(connection, resources, log);
+  }
 
-    URL tableList = migrationClass.getResource(migrationClass.getSimpleName() + "/table-list.txt");
-    log.info("Reading table list : " + tableList);
+  public static void load(Connection connection, List<TableDataResource> tableDataResources,
+      LogCallback log) throws IOException, SQLException {
+    String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
-    List<String> tableNames = readLines(tableList);
-
-    String idenfifierQuateString = connection.getMetaData().getIdentifierQuoteString();
-
-    for (String tableName : tableNames) {
-      TabbleMetaData metaData = extractMetaData(connection, tableName, log);
-
-      URL csvFile = migrationClass.getResource(migrationClass.getSimpleName() + "/" + tableName + ".csv");
-
-      log.info("Loading csv file : " + csvFile);
-
-      try (CSVParser csvParser = CSVParser.parse(csvFile, StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
-
-        String insertStatement = buildInsertStatement(tableName, csvParser.getHeaderNames(), idenfifierQuateString);
+    for (TableDataResource tableDataResource : tableDataResources) {
+      TabbleMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
+      log.info("Loading csv file : " + tableDataResource.getCsvUrl());
+      try (CSVParser csvParser =
+          CSVParser.parse(tableDataResource.getCsvUrl(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
+        String insertStatement = buildInsertStatement(tableDataResource.getTableName(),
+            csvParser.getHeaderNames(), identifierQuoteString);
 
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
-
     }
   }
 
@@ -81,27 +75,16 @@ public class CsvLoader {
     return metaData;
   }
 
-  static List<String> readLines(URL resource) throws IOException {
-
-    List<String> lines = new ArrayList<>();
-    try (InputStream is = resource.openStream()) {
-      try (Scanner scanner = new Scanner(is)) {
-        while (scanner.hasNextLine()) {
-          lines.add(scanner.nextLine());
-        }
-      }
-    }
-
-    return lines;
-  }
-
   static String buildInsertStatement(String tableName, List<String> columnNames, String idenfifierQuateString) {
 
     StringJoiner columns = new StringJoiner(",");
     StringJoiner values = new StringJoiner(",");
 
-    columnNames.stream().map(columnName -> idenfifierQuateString + columnName + idenfifierQuateString)
-        .peek(columns::add).forEachOrdered(r -> values.add("?"));
+    for (String columnName : columnNames) {
+      String r = idenfifierQuateString + columnName + idenfifierQuateString;
+      columns.add(r);
+      values.add("?");
+    }
 
     return String.format("INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)", idenfifierQuateString, tableName,
         columns.toString(), values.toString());
@@ -115,11 +98,11 @@ public class CsvLoader {
 
       while(itr.hasNext()) {
 
-        CSVRecord record = itr.next();
+        CSVRecord csvRecord = itr.next();
         int i = 1;
         
         for (String columnName : csvParser.getHeaderNames()) {
-          String cellValue = record.get(columnName);
+          String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
 
           switch (metaData.getDataType(columnName)) {
