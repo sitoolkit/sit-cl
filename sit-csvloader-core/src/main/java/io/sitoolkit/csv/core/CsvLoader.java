@@ -120,7 +120,7 @@ public class CsvLoader {
               pstmt.setDouble(columnIndex, Double.parseDouble(cellValue));
               break;
             case Types.DATE:
-              pstmt.setDate(columnIndex, Date.valueOf(LocalDate.parse(cellValue)));
+              setDateValue(pstmt, columnIndex, cellValue);
               break;
             case Types.TIMESTAMP:
               pstmt.setTimestamp(columnIndex, Timestamp.valueOf(LocalDateTime.parse(cellValue)));
@@ -144,9 +144,8 @@ public class CsvLoader {
               }
               break;
             default:
-              pstmt.setString(columnIndex, cellValue);
-          }
-
+                setDefaultValue(pstmt, columnIndex, cellValue);
+            }
         }
         pstmt.addBatch();
       }
@@ -159,4 +158,23 @@ public class CsvLoader {
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
   }
 
+  static void setDateValue(PreparedStatement pstmt, int columnIndex, String cellValue) throws SQLException {
+    if (!isNullValue(cellValue)) {
+       pstmt.setDate(columnIndex, Date.valueOf(LocalDate.parse(cellValue)));
+     } else {
+       pstmt.setDate(columnIndex, null);
+     }
+  }
+
+  static void setDefaultValue(PreparedStatement pstmt, int columnIndex, String cellValue) throws SQLException {
+    if (!isNullValue(cellValue)) {
+       pstmt.setString(columnIndex, cellValue);
+     } else {
+       pstmt.setString(columnIndex, null);
+     }
+  }
+
+  static boolean isNullValue(String val) {
+    return "[null]".equals(val);
+  }
 }
