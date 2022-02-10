@@ -57,8 +57,13 @@ class CsvLoaderIT {
     assertTrue(rs.next());
 
     assertEquals(3, rs.getInt("FROM"));
+    assertEquals(null, rs.getString("COL_DECIMAL"));
     assertEquals(null, rs.getString("COL_VARCHAR"));
     assertEquals(null, rs.getString("COL_DATE"));
+    assertEquals(null, rs.getString("COL_TIMESTAMP"));
+    assertEquals(null, rs.getString("COL_TIME"));
+    assertEquals(null, rs.getString("COL_JSON"));
+    assertEquals(null, rs.getString("COL_BOOLEAN"));
 
     assertFalse(rs.next());
   }

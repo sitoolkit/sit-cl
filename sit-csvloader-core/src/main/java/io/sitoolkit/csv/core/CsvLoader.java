@@ -105,6 +105,11 @@ public class CsvLoader {
           String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
 
+          if ("[null]".equals(cellValue)) {
+            pstmt.setNull(columnIndex, java.sql.Types.NULL);
+            continue;
+          }
+
           switch (metaData.getDataType(columnName)) {
             case Types.SMALLINT:
             case Types.INTEGER:
@@ -120,7 +125,7 @@ public class CsvLoader {
               pstmt.setDouble(columnIndex, Double.parseDouble(cellValue));
               break;
             case Types.DATE:
-              setDateValue(pstmt, columnIndex, cellValue);
+              pstmt.setDate(columnIndex, Date.valueOf(LocalDate.parse(cellValue)));
               break;
             case Types.TIMESTAMP:
               pstmt.setTimestamp(columnIndex, Timestamp.valueOf(LocalDateTime.parse(cellValue)));
@@ -144,7 +149,7 @@ public class CsvLoader {
               }
               break;
             default:
-                setDefaultValue(pstmt, columnIndex, cellValue);
+                pstmt.setString(columnIndex, cellValue);
             }
         }
         pstmt.addBatch();
@@ -156,25 +161,5 @@ public class CsvLoader {
   static boolean isPgJsonColumn(String databaseName, String columnTypeName) {
     return ("PostgreSQL".equalsIgnoreCase(databaseName)
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
-  }
-
-  static void setDateValue(PreparedStatement pstmt, int columnIndex, String cellValue) throws SQLException {
-    if (!isNullValue(cellValue)) {
-       pstmt.setDate(columnIndex, Date.valueOf(LocalDate.parse(cellValue)));
-     } else {
-       pstmt.setDate(columnIndex, null);
-     }
-  }
-
-  static void setDefaultValue(PreparedStatement pstmt, int columnIndex, String cellValue) throws SQLException {
-    if (!isNullValue(cellValue)) {
-       pstmt.setString(columnIndex, cellValue);
-     } else {
-       pstmt.setString(columnIndex, null);
-     }
-  }
-
-  static boolean isNullValue(String val) {
-    return "[null]".equals(val);
   }
 }
