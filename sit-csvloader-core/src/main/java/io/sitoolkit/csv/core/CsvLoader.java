@@ -28,7 +28,7 @@ public class CsvLoader {
   private static final CSVFormat DEFAULT_FORMAT =
       CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
 
-  private static final String CSV_NULL_VALUE = "[null]";
+  private static final String STRING_TO_CONVERT_TO_NULL = "[null]";
 
   private CsvLoader() {
     // NOP
@@ -108,7 +108,7 @@ public class CsvLoader {
           int columnIndex = i++;
           int dataType = metaData.getDataType(columnName);
 
-          if (CSV_NULL_VALUE.equals(cellValue)) {
+          if (STRING_TO_CONVERT_TO_NULL.equals(cellValue)) {
             pstmt.setNull(columnIndex, dataType);            
             continue;
           }

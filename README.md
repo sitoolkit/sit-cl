@@ -105,8 +105,8 @@ TABLE_2
 ```
 
 
-The CSV file contains the column names on the first line and the data to be loaded from the second line.
-If you'd like to register null, please set [null].
+The CSV file contains the column names on the first line and the data to be loaded from the second line.  
+note: If you want to register null, please set [null].
 
 - TABLE_1.csv
 
@@ -115,7 +115,7 @@ COLUMN_1,COLUMN_2
 1,One
 2,Two
 3,Three
-[null],[null]
+4,[null]
 ```
 
 
