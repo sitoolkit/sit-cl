@@ -150,7 +150,7 @@ public class CsvLoader {
               break;
             default:
               pstmt.setString(columnIndex, cellValue);
-            }
+          }
         }
         pstmt.addBatch();
       }
