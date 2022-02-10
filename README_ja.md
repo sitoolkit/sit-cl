@@ -101,6 +101,7 @@ TABLE_2
 ```
 
 CSVファイルには1行目にカラム名を、2行目以降にロードするデータを記載します。
+もしもnullを登録したい場合、[null]を設定します。
 
 - TABLE_1.csv
 
@@ -109,6 +110,7 @@ COLUMN_1,COLUMN_2
 1,One
 2,Two
 3,Three
+[null],[null]
 ```
 
 以上の準備が終わったら、以下のコマンドでFlywayのMigrationを実行します。

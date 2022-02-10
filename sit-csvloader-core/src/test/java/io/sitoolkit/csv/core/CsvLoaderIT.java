@@ -56,7 +56,7 @@ class CsvLoaderIT {
 
     assertTrue(rs.next());
 
-    assertEquals(3, rs.getInt("FROM"));
+    assertEquals(null, rs.getString("FROM"));
     assertEquals(null, rs.getString("COL_DECIMAL"));
     assertEquals(null, rs.getString("COL_VARCHAR"));
     assertEquals(null, rs.getString("COL_DATE"));

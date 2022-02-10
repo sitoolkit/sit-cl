@@ -28,6 +28,8 @@ public class CsvLoader {
   private static final CSVFormat DEFAULT_FORMAT =
       CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
 
+  private static final String CSV_NULL_VALUE = "[null]";
+
   private CsvLoader() {
     // NOP
   }
@@ -104,13 +106,14 @@ public class CsvLoader {
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
+          int dataType = metaData.getDataType(columnName);
 
-          if ("[null]".equals(cellValue)) {
-            pstmt.setNull(columnIndex, java.sql.Types.NULL);
+          if (CSV_NULL_VALUE.equals(cellValue)) {
+            pstmt.setNull(columnIndex, dataType);            
             continue;
           }
 
-          switch (metaData.getDataType(columnName)) {
+          switch (dataType) {
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
