@@ -28,6 +28,8 @@ public class CsvLoader {
   private static final CSVFormat DEFAULT_FORMAT =
       CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
 
+  private static final String STRING_TO_CONVERT_TO_NULL = "[null]";
+
   private CsvLoader() {
     // NOP
   }
@@ -104,8 +106,14 @@ public class CsvLoader {
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
+          int dataType = metaData.getDataType(columnName);
 
-          switch (metaData.getDataType(columnName)) {
+          if (STRING_TO_CONVERT_TO_NULL.equals(cellValue)) {
+            pstmt.setNull(columnIndex, dataType);            
+            continue;
+          }
+
+          switch (dataType) {
             case Types.SMALLINT:
             case Types.INTEGER:
             case Types.BIGINT:
@@ -146,7 +154,6 @@ public class CsvLoader {
             default:
               pstmt.setString(columnIndex, cellValue);
           }
-
         }
         pstmt.addBatch();
       }
@@ -158,5 +165,4 @@ public class CsvLoader {
     return ("PostgreSQL".equalsIgnoreCase(databaseName)
         && ("json".equalsIgnoreCase(columnTypeName) || "jsonb".equalsIgnoreCase(columnTypeName)));
   }
-
 }
