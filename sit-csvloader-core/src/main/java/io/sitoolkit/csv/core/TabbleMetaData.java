@@ -5,15 +5,24 @@ import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 @ToString
+@RequiredArgsConstructor
 public class TabbleMetaData {
+
+  private final String tableName;
 
   private Map<String, TypeDetail> dataTypeMap = new HashMap<>();
 
   public int getDataType(String columnName) {
-    return dataTypeMap.get(columnName).getDataType();
+
+    TypeDetail type = dataTypeMap.get(columnName);
+    if (type == null) {
+      throw new IllegalArgumentException("Column:" + columnName + " does not exist in table:" + tableName);
+    }
+    return type.getDataType();
   }
 
   public String getTypeName(String columnName) {

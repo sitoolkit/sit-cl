@@ -59,7 +59,7 @@ public class CsvLoader {
   }
 
   static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log) throws SQLException {
-    TabbleMetaData metaData = new TabbleMetaData();
+    TabbleMetaData metaData = new TabbleMetaData(tableName);
 
     try (ResultSet rs = connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
 
