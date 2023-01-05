@@ -1,5 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <!-- The Basics -->
@@ -9,7 +10,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-csv</artifactId>
-      <version>1.7</version>
+      <version>1.9.0</version>
     </dependency>
 
     <dependency>
@@ -22,13 +23,13 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.7.0</version>
+      <version>5.9.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <version>1.4.200</version>
+      <version>2.1.214</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -147,7 +148,8 @@
 
       <properties>
         <jdbc.password>root</jdbc.password>
-        <jdbc.url>jdbc:mysql://localhost:13306/mysql?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;allowMultiQueries=true</jdbc.url>
+        <jdbc.url>
+          jdbc:mysql://localhost:13306/mysql?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;allowMultiQueries=true</jdbc.url>
         <jdbc.user>root</jdbc.user>
       </properties>
 
@@ -174,7 +176,7 @@
                       <!-- <tcp>
                         <mode>mapped</mode>
                         <host>localhost</host>
-                        <ports>
+                      <ports>
                           <port>3306</port>
                         </ports>
                       </tcp> -->
