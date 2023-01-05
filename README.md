@@ -1,10 +1,10 @@
-[日本語](README_ja.md)
+[English](README.md)
 
 # CSV Loader
 
-The CSV Loader is a tool for loading CSV files into the DB.
+CSV Loader is a tool that loads CSV files into the DB.
 
-As of v0.8, the CSV Loader will be used for "Flyway Java-based Migration" (specialized for https://flywaydb.org/documentation/concepts/migrations#java-based-migrations).
+As of v0. 8, CSV Loader will be used for [Java-based Migration of Flyway] (It is specialized in https://flywaydb.org/documentation/concepts/migrations#java-based-migrations). In the next version migration, we are planning to support jar independent execution, Maven Plugin, etc.
 
 
 
@@ -13,12 +13,12 @@ As of v0.8, the CSV Loader will be used for "Flyway Java-based Migration" (speci
 - Java 11+
 - Maven / Gradle
 
-## Usage (Flyway Java-based Migration)
+## How to use (Flyway Java-based Migration)
 
 This section describes how to use the CSV Loader within Flyway java-based Migration.
-First, configure the project with the Flyway Maven Plugin (with the https://flywaydb.org/documentation/usage/maven/) operational.
+First, the project is configured with the https://flywaydb.org/documentation/usage/maven/) Maven Plugin (The directory configuration is as follows:
 
-- Directory configuration
+- Directory Configuration
 
 ```
 project
@@ -60,14 +60,14 @@ Next, add the CSV Loader dependency to pom. xml.
   <dependencies>
     <dependency>
       <groupId>io.sitoolkit.csv</groupId>
-      <artifactId>sit-csvloader-core</artifactId>
+      <artifactId>sit-csvloader-flyway</artifactId>
       <version>0.8</version>
     </dependency>
   </dependences>
 ```
 
 
-Next, create a Migration class to load the data-inherit BaseJavaMigration and run CsvLoader. load in migrate.
+Next, you create a data-loading Migration class that inherits from BaseJavaCsvMigration.
 
 - V2__AddRecords.java
 
@@ -80,22 +80,14 @@ import org.flywaydb.core.api.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-import io.sitoolkit.csv.core.CsvLoader;
+import io.sitoolkit.csv.flyway;
 
 @SuppressWarnings("squid:S101")
-public class V2__AddRecords extends BaseJavaMigration {
-
-private final Log log = LogFactory.getLog(V2__AddRecords.class);
-
-@Override
-public void migrate(Context ctx) throws Exception {
-CsvLoader.load(ctx.getConnection(), getClass(), log::info);
-}
-  
+public class V2__AddRecords extends BaseJavaCsvMigration {  
 }
 ```
 
-The table-list. txt contains the table names of the tables to be loaded in one version, one row at a time, from top to bottom.
+The table-list. txt file contains the names of the tables to be loaded in one version, one row at a time. Loading is performed from top to bottom.
 
 - table-list.txt
 
@@ -105,8 +97,8 @@ TABLE_2
 ```
 
 
-The CSV file contains the column names on the first line and the data to be loaded from the second line.  
-If [null] is set, null will be registered.
+The first line of the CSV file contains the column names, and the second and subsequent lines contain the data to be loaded.
+Set to null to register a null.
 
 - TABLE_1.csv
 
@@ -119,11 +111,11 @@ COLUMN_1,COLUMN_2
 ```
 
 
-Once this is done, run Flyway Migration with the following command :
+After these preparations, run the Flyway Migration with the following command:
 
 ```
 mvn flyway:migrate
 ```
 
 
-If the migration is successful, CSV data is loaded into TABLE _ 1.
+If Migration is successful, CSV data is loaded into TABLE _ 1.
