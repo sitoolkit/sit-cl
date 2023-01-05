@@ -57,13 +57,13 @@ CREATE TABLE TABLE_1 (
   <dependencies>
     <dependency>
       <groupId>io.sitoolkit.csv</groupId>
-      <artifactId>sit-csvloader-core</artifactId>
+      <artifactId>sit-csvloader-flyway</artifactId>
       <version>0.8</version>
     </dependency>
   </dependences>
 ```
 
-次に、データをロードするためのMigrationクラスを作成します。BaseJavaMigrationを継承し、migrateの中でCsvLoader.loadを実行します。
+次に、データをロードするためのMigrationクラスを作成します。このクラスではBaseJavaCsvMigrationを継承します。
 
 - V2__AddRecords.java
 
@@ -76,18 +76,10 @@ import org.flywaydb.core.api.logging.LogFactory;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 
-import io.sitoolkit.csv.core.CsvLoader;
+import io.sitoolkit.csv.flyway;
 
 @SuppressWarnings("squid:S101")
-public class V2__AddRecords extends BaseJavaMigration {
-
-  private final Log log = LogFactory.getLog(V2__AddRecords.class);
-
-  @Override
-  public void migrate(Context ctx) throws Exception {
-    CsvLoader.load(ctx.getConnection(), getClass(), log::info);
-  }
-  
+public class V2__AddRecords extends BaseJavaCsvMigration {  
 }
 ```
 
