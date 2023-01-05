@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
-
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -41,8 +40,9 @@ public class CsvLoader {
     load(connection, resources, log);
   }
 
-  public static void load(Connection connection, List<TableDataResource> tableDataResources,
-      LogCallback log) throws IOException, SQLException {
+  public static void load(
+      Connection connection, List<TableDataResource> tableDataResources, LogCallback log)
+      throws IOException, SQLException {
     String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
     for (TableDataResource tableDataResource : tableDataResources) {
@@ -50,26 +50,28 @@ public class CsvLoader {
       log.info("Loading csv file : " + tableDataResource.getCsvUrl());
       try (CSVParser csvParser =
           CSVParser.parse(tableDataResource.getCsvUrl(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
-        String insertStatement = buildInsertStatement(tableDataResource.getTableName(),
-            csvParser.getHeaderNames(), identifierQuoteString);
+        String insertStatement =
+            buildInsertStatement(
+                tableDataResource.getTableName(),
+                csvParser.getHeaderNames(),
+                identifierQuoteString);
 
         executeStatement(connection, insertStatement, csvParser, metaData);
       }
     }
   }
 
-  static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log) throws SQLException {
+  static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log)
+      throws SQLException {
     TabbleMetaData metaData = new TabbleMetaData(tableName);
 
-    try (ResultSet rs = connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
+    try (ResultSet rs =
+        connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
 
       while (rs.next()) {
         metaData.addDataType(
-          rs.getString("COLUMN_NAME"), 
-          metaData.new TypeDetail(
-            rs.getInt("DATA_TYPE"),
-            rs.getString("TYPE_NAME"))
-        );
+            rs.getString("COLUMN_NAME"),
+            metaData.new TypeDetail(rs.getInt("DATA_TYPE"), rs.getString("TYPE_NAME")));
       }
     }
 
@@ -77,7 +79,8 @@ public class CsvLoader {
     return metaData;
   }
 
-  static String buildInsertStatement(String tableName, List<String> columnNames, String idenfifierQuateString) {
+  static String buildInsertStatement(
+      String tableName, List<String> columnNames, String idenfifierQuateString) {
 
     StringJoiner columns = new StringJoiner(",");
     StringJoiner values = new StringJoiner(",");
@@ -88,28 +91,30 @@ public class CsvLoader {
       values.add("?");
     }
 
-    return String.format("INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)", idenfifierQuateString, tableName,
-        columns.toString(), values.toString());
+    return String.format(
+        "INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)",
+        idenfifierQuateString, tableName, columns.toString(), values.toString());
   }
 
-  static void executeStatement(Connection connection, String statement, CSVParser csvParser, TabbleMetaData metaData)
+  static void executeStatement(
+      Connection connection, String statement, CSVParser csvParser, TabbleMetaData metaData)
       throws SQLException {
     try (PreparedStatement pstmt = connection.prepareStatement(statement)) {
 
       Iterator<CSVRecord> itr = csvParser.iterator();
 
-      while(itr.hasNext()) {
+      while (itr.hasNext()) {
 
         CSVRecord csvRecord = itr.next();
         int i = 1;
-        
+
         for (String columnName : csvParser.getHeaderNames()) {
           String cellValue = csvRecord.get(columnName);
           int columnIndex = i++;
           int dataType = metaData.getDataType(columnName);
 
           if (STRING_TO_CONVERT_TO_NULL.equals(cellValue)) {
-            pstmt.setNull(columnIndex, dataType);            
+            pstmt.setNull(columnIndex, dataType);
             continue;
           }
 
@@ -144,7 +149,8 @@ public class CsvLoader {
               pstmt.setBoolean(columnIndex, Boolean.valueOf(cellValue));
               break;
             case Types.OTHER:
-              if (isPgJsonColumn(connection.getMetaData().getDatabaseProductName(),
+              if (isPgJsonColumn(
+                  connection.getMetaData().getDatabaseProductName(),
                   metaData.getTypeName(columnName))) {
                 pstmt.setObject(columnIndex, cellValue, Types.OTHER);
               } else {

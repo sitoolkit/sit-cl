@@ -2,7 +2,6 @@ package io.sitoolkit.csv.core;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,8 @@ public class TabbleMetaData {
 
     TypeDetail type = dataTypeMap.get(columnName);
     if (type == null) {
-      throw new IllegalArgumentException("Column:" + columnName + " does not exist in table:" + tableName);
+      throw new IllegalArgumentException(
+          "Column:" + columnName + " does not exist in table:" + tableName);
     }
     return type.getDataType();
   }

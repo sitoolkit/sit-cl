@@ -18,15 +18,15 @@ public class ResourceFinder {
     // NOP
   }
 
-  public static List<TableDataResource> findTableDataResources(Class<?> owner,
-      List<String> resDirPaths, LogCallback log) throws IOException {
+  public static List<TableDataResource> findTableDataResources(
+      Class<?> owner, List<String> resDirPaths, LogCallback log) throws IOException {
     TableListResource tableListResource = findTableListResource(owner, resDirPaths);
     log.info("Reading table list : " + tableListResource.getTableListUrl());
     List<String> tableNames = readTableList(tableListResource.getTableListUrl());
     List<TableDataResource> tableDataResources = new ArrayList<>();
     for (String tableName : tableNames) {
-      tableDataResources
-          .add(buildTableDataResource(owner, tableListResource.getTableListDir(), tableName));
+      tableDataResources.add(
+          buildTableDataResource(owner, tableListResource.getTableListDir(), tableName));
     }
     return tableDataResources;
   }
@@ -35,16 +35,20 @@ public class ResourceFinder {
       throws IOException {
     String versionName = owner.getSimpleName();
     if (resDirPaths.isEmpty()) {
-      return new TableListResource(owner.getResource(versionName + "/" + TABLE_LIST_FILE_NAME),
-          versionName);
+      return new TableListResource(
+          owner.getResource(versionName + "/" + TABLE_LIST_FILE_NAME), versionName);
     }
 
-    List<TableListResource> tableLists = resDirPaths.stream()
-        .map(location -> new TableListResource(
-            owner.getResource(location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME),
-            location + "/" + versionName))
-        .filter(item -> item.getTableListUrl() != null)
-        .collect(Collectors.toList());
+    List<TableListResource> tableLists =
+        resDirPaths.stream()
+            .map(
+                location ->
+                    new TableListResource(
+                        owner.getResource(
+                            location + "/" + versionName + "/" + TABLE_LIST_FILE_NAME),
+                        location + "/" + versionName))
+            .filter(item -> item.getTableListUrl() != null)
+            .collect(Collectors.toList());
 
     if (tableLists.isEmpty()) {
       throw new FileNotFoundException(
@@ -55,10 +59,11 @@ public class ResourceFinder {
     return tableLists.get(0);
   }
 
-  static void throwMultipleTableListException(String versionName,
-      List<TableListResource> tableListResourceList) throws IOException {
-    StringBuilder sb = new StringBuilder(
-        "Found more than one tableList with version name " + versionName + "\nFiles:\n");
+  static void throwMultipleTableListException(
+      String versionName, List<TableListResource> tableListResourceList) throws IOException {
+    StringBuilder sb =
+        new StringBuilder(
+            "Found more than one tableList with version name " + versionName + "\nFiles:\n");
     for (TableListResource tableListResource : tableListResourceList) {
       sb.append("-> ").append(tableListResource.getTableListUrl()).append('\n');
     }
@@ -78,8 +83,8 @@ public class ResourceFinder {
     return lines;
   }
 
-  static TableDataResource buildTableDataResource(Class<?> owner, String tableListDirPath,
-      String tableName) throws IOException {
+  static TableDataResource buildTableDataResource(
+      Class<?> owner, String tableListDirPath, String tableName) throws IOException {
     URL csvUrl = owner.getResource(tableListDirPath + "/" + tableName + ".csv");
     if (csvUrl == null) {
       throw new FileNotFoundException(

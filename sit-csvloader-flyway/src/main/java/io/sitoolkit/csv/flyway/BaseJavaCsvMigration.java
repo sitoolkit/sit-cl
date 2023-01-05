@@ -17,8 +17,10 @@ public class BaseJavaCsvMigration extends BaseJavaMigration {
   @Override
   public void migrate(Context ctx) throws Exception {
     Log log = LogFactory.getLog(getClass());
-    List<String> resDirPaths = Arrays.stream(ctx.getConfiguration().getLocations())
-        .map(BaseJavaCsvMigration::prefixLocation).collect(Collectors.toList());
+    List<String> resDirPaths =
+        Arrays.stream(ctx.getConfiguration().getLocations())
+            .map(BaseJavaCsvMigration::prefixLocation)
+            .collect(Collectors.toList());
     List<TableDataResource> tableDataResources =
         ResourceFinder.findTableDataResources(getClass(), resDirPaths, log::info);
     CsvLoader.load(ctx.getConnection(), tableDataResources, log::info);
