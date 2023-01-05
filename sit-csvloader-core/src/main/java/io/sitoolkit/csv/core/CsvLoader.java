@@ -25,7 +25,11 @@ import org.apache.commons.csv.CSVRecord;
 public class CsvLoader {
 
   private static final CSVFormat DEFAULT_FORMAT =
-      CSVFormat.DEFAULT.withSystemRecordSeparator().withFirstRecordAsHeader();
+      CSVFormat.DEFAULT
+          .builder()
+          .setRecordSeparator(System.lineSeparator())
+          .setSkipHeaderRecord(true)
+          .build();
 
   private static final String STRING_TO_CONVERT_TO_NULL = "[null]";
 
