@@ -22,11 +22,11 @@ public class ResourceFinder {
       List<String> resDirPaths, LogCallback log) throws IOException {
     TableListResource tableListResource = findTableListResource(owner, resDirPaths);
     log.info("Reading table list : " + tableListResource.getTableListUrl());
-    List<String> tableNames = readTableList(tableListResource.getTableListUrl());
+    List<String> tablePaths = readTableList(tableListResource.getTableListUrl());
     List<TableDataResource> tableDataResources = new ArrayList<>();
-    for (String tableName : tableNames) {
+    for (String tablePath : tablePaths) {
       tableDataResources
-          .add(buildTableDataResource(owner, tableListResource.getTableListDir(), tableName));
+          .add(buildTableDataResource(owner, tableListResource.getTableListDir(), tablePath));
     }
     return tableDataResources;
   }
@@ -79,11 +79,22 @@ public class ResourceFinder {
   }
 
   static TableDataResource buildTableDataResource(Class<?> owner, String tableListDirPath,
-      String tableName) throws IOException {
-    URL csvUrl = owner.getResource(tableListDirPath + "/" + tableName + ".csv");
+      String tablePath) throws IOException {
+    URL csvUrl;
+    String tableName;
+
+    csvUrl = owner.getResource(tableListDirPath + "/" + tablePath + ".csv");
+
+    if (tablePath.contains("/")) {
+      String[] parts = tablePath.split("/");
+      tableName = parts[parts.length - 1];
+    } else{
+      tableName = tablePath;
+    }
+
     if (csvUrl == null) {
       throw new FileNotFoundException(
-          "Not found csv file\nExpected Path:\n-> " + tableListDirPath + "/" + tableName + ".csv");
+          "Not found csv file\nExpected Path:\n-> " + tableListDirPath + "/" + tablePath + ".csv");
     }
     return new TableDataResource(tableName, csvUrl);
   }
