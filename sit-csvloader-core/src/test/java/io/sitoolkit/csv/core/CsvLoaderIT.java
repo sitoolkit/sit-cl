@@ -88,4 +88,33 @@ class CsvLoaderIT {
 
     assertFalse(rs.next());
   }
+
+  @Test
+  void loadSubDirectoryLocationTest() throws Exception {
+    List<TableDataResource> tableDataResources = ResourceFinder.findTableDataResources(getClass(),
+        List.of("three"), (line) -> System.out.println(line));
+    CsvLoader.load(connection, tableDataResources, (line) -> System.out.println(line));
+
+    String selectFromOrder = "SELECT * FROM \"ORDER\"".replace("\"",
+        connection.getMetaData().getIdentifierQuoteString());
+    ResultSet rs = connection.createStatement().executeQuery(selectFromOrder);
+
+    assertTrue(rs.next());
+
+    assertEquals(3, rs.getInt("FROM"));
+    assertEquals("three", rs.getString("COL_VARCHAR"));
+    assertEquals("2020-12-31", rs.getString("COL_DATE"));
+    assertEquals("12:30:00", rs.getString("COL_TIME"));
+    assertEquals(true, rs.getBoolean("COL_BOOLEAN"));
+
+    assertTrue(rs.next());
+
+    assertEquals(4, rs.getInt("FROM"));
+    assertEquals("four", rs.getString("COL_VARCHAR"));
+    assertEquals("2021-01-01", rs.getString("COL_DATE"));
+    assertEquals("12:30:00", rs.getString("COL_TIME"));
+    assertEquals(false, rs.getBoolean("COL_BOOLEAN"));
+
+    assertFalse(rs.next());
+  }
 }
