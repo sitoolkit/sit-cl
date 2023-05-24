@@ -29,6 +29,7 @@ public class CsvLoader {
           .builder()
           .setRecordSeparator(System.lineSeparator())
           .setSkipHeaderRecord(true)
+          .setHeader()
           .build();
 
   private static final String STRING_TO_CONVERT_TO_NULL = "[null]";
