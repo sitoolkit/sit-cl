@@ -30,7 +30,7 @@ project
       db/migration
         V1__CreateTables.sql
         V2__AddRecords
-          tabe-list.txt
+          table-list.txt
           TABLE_1.csv
           TABLE_2.csv
 ```
@@ -58,9 +58,9 @@ CREATE TABLE TABLE_1 (
     <dependency>
       <groupId>io.sitoolkit.csv</groupId>
       <artifactId>sit-csvloader-flyway</artifactId>
-      <version>0.8</version>
+      <version>0.9</version>
     </dependency>
-  </dependences>
+  </dependencies>
 ```
 
 次に、データをロードするためのMigrationクラスを作成します。このクラスではBaseJavaCsvMigrationを継承します。
