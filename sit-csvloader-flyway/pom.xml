@@ -15,6 +15,7 @@
 
   <properties>
     <flyway.version>7.3.2</flyway.version>
+    <mockito.version>5.4.0</mockito.version>
   </properties>
 
   <dependencies>
@@ -27,6 +28,17 @@
       <groupId>io.sitoolkit.csv</groupId>
       <artifactId>sit-csvloader-core</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>
