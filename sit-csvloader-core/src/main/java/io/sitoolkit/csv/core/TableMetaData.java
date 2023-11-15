@@ -9,7 +9,7 @@ import lombok.ToString;
 
 @ToString
 @RequiredArgsConstructor
-public class TabbleMetaData {
+public class TableMetaData {
 
   private final String tableName;
 

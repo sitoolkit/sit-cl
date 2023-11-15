@@ -30,14 +30,23 @@
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>2.1.214</version>
-      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.2.18</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.19</version>
     </dependency>
   </dependencies>
 
   <parent>
     <groupId>io.sitoolkit.csv</groupId>
     <artifactId>sit-csvloader</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>../</relativePath>
   </parent>
 
@@ -62,26 +71,44 @@
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.34.1</version>
           <executions>
             <execution>
-              <id>start</id>
+              <id>stop-and-remove-containers</id>
               <phase>pre-integration-test</phase>
               <goals>
-                <goal>start</goal>
+                <goal>stop</goal>
+                <goal>remove</goal>
               </goals>
             </execution>
             <execution>
-              <id>stop</id>
-              <phase>post-integration-test</phase>
+              <id>start-containers</id>
+              <phase>pre-integration-test</phase>
               <goals>
-                <goal>stop</goal>
+                <goal>start</goal>
               </goals>
             </execution>
           </executions>
         </plugin>
       </plugins>
     </pluginManagement>
+    <resources>
+      <resource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+            <include>connection.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/test/resources/io/sitoolkit/csv/core</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/table-list.txt</include>
+          <include>**/*.csv</include>
+          <include>*.sql</include>
+        </includes>
+      </resource>
+    </resources>
   </build>
 
   <!-- Environment Settings -->
