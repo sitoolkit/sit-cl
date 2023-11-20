@@ -71,44 +71,26 @@
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
+          <version>0.43.4</version>
           <executions>
             <execution>
-              <id>stop-and-remove-containers</id>
-              <phase>pre-integration-test</phase>
-              <goals>
-                <goal>stop</goal>
-                <goal>remove</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>start-containers</id>
+              <id>start</id>
               <phase>pre-integration-test</phase>
               <goals>
                 <goal>start</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>stop</id>
+              <phase>post-integration-test</phase>
+              <goals>
+                <goal>stop</goal>
               </goals>
             </execution>
           </executions>
         </plugin>
       </plugins>
     </pluginManagement>
-    <resources>
-      <resource>
-        <directory>src/test/resources</directory>
-        <filtering>true</filtering>
-        <includes>
-            <include>connection.properties</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/test/resources/io/sitoolkit/csv/core</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>**/table-list.txt</include>
-          <include>**/*.csv</include>
-          <include>*.sql</include>
-        </includes>
-      </resource>
-    </resources>
   </build>
 
   <!-- Environment Settings -->

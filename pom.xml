@@ -34,7 +34,7 @@
         <version>3.0.0</version>
         <configuration>
           <target>
-            <ant antfile="build.xml" target="${ant.target}" />
+            <ant antfile="build.xml" target="install" />
           </target>
         </configuration>
       </plugin>
@@ -152,7 +152,18 @@
         </plugins>
       </build>
     </profile>
-
+    <profile>
+      <id>postgres</id>
+      <properties>
+        <profile.build-mode>-P postgres</profile.build-mode>
+      </properties>
+    </profile>
+    <profile>
+      <id>mysql</id>
+      <properties>
+        <profile.build-mode>-P mysql</profile.build-mode>
+      </properties>
+    </profile>
   </profiles>
 
 
