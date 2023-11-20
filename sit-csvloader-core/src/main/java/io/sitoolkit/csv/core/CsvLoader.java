@@ -51,7 +51,7 @@ public class CsvLoader {
     String identifierQuoteString = connection.getMetaData().getIdentifierQuoteString();
 
     for (TableDataResource tableDataResource : tableDataResources) {
-      TabbleMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
+      TableMetaData metaData = extractMetaData(connection, tableDataResource.getTableName(), log);
       log.info("Loading csv file : " + tableDataResource.getCsvUrl());
       try (CSVParser csvParser =
           CSVParser.parse(tableDataResource.getCsvUrl(), StandardCharsets.UTF_8, DEFAULT_FORMAT)) {
@@ -66,9 +66,9 @@ public class CsvLoader {
     }
   }
 
-  static TabbleMetaData extractMetaData(Connection connection, String tableName, LogCallback log)
+  static TableMetaData extractMetaData(Connection connection, String tableName, LogCallback log)
       throws SQLException {
-    TabbleMetaData metaData = new TabbleMetaData(tableName);
+    TableMetaData metaData = new TableMetaData(tableName);
 
     try (ResultSet rs =
         connection.getMetaData().getColumns(null, connection.getSchema(), tableName, "%")) {
@@ -85,24 +85,24 @@ public class CsvLoader {
   }
 
   static String buildInsertStatement(
-      String tableName, List<String> columnNames, String idenfifierQuateString) {
+      String tableName, List<String> columnNames, String identifierQuoteString) {
 
     StringJoiner columns = new StringJoiner(",");
     StringJoiner values = new StringJoiner(",");
 
     for (String columnName : columnNames) {
-      String r = idenfifierQuateString + columnName + idenfifierQuateString;
+      String r = identifierQuoteString + columnName + identifierQuoteString;
       columns.add(r);
       values.add("?");
     }
 
     return String.format(
         "INSERT INTO %1$s%2$s%1$s (%3$s) VALUES (%4$s)",
-        idenfifierQuateString, tableName, columns.toString(), values.toString());
+        identifierQuoteString, tableName, columns.toString(), values.toString());
   }
 
   static void executeStatement(
-      Connection connection, String statement, CSVParser csvParser, TabbleMetaData metaData)
+      Connection connection, String statement, CSVParser csvParser, TableMetaData metaData)
       throws SQLException {
     try (PreparedStatement pstmt = connection.prepareStatement(statement)) {
 

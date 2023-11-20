@@ -4,10 +4,22 @@
     <os family="windows" />
   </condition>
 
+  <condition property="profile.build-mode" value="">
+    <not>
+      <isset property="profile.build-mode" />
+    </not>
+  </condition>
+
+  <target name="install">
+    <exec executable="${mvn.cmd}" dir="sit-csvloader-core" failonerror="true">
+      <arg line="clean install ${profile.build-mode}" />
+    </exec>
+    <antcall target="set-version" />
+  </target>
   
   <target name="set-version">
 
-    <property name="version" value="1.0-SNAPSHOT"/>
+    <property name="version" value="1.1.0-SNAPSHOT"/>
 
     <exec executable="${mvn.cmd}">
       <arg line="versions:set -DnewVersion=${version} -DgenerateBackupPoms=false" />
