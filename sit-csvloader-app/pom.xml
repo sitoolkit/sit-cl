@@ -1,0 +1,129 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>sit-csvloader-app</artifactId>
+
+  <parent>
+    <groupId>io.sitoolkit.csv</groupId>
+    <artifactId>sit-csvloader</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <relativePath>../</relativePath>
+  </parent>
+
+  <properties>
+    <jdbc.password>sa</jdbc.password>
+    <jdbc.url>jdbc:h2:mem:test</jdbc.url>
+    <jdbc.user>sa</jdbc.user>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.sitoolkit.csv</groupId>
+      <artifactId>sit-csvloader-flyway</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.sitoolkit.csv</groupId>
+      <artifactId>sit-csvloader-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>5.9.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>2.1.214</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/../sample/config</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.basedir}/../sample/resources</targetPath>
+        <includes>
+          <include>connection.properties</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+
+  <!-- Environment Settings -->
+  <profiles>
+    <profile>
+      <id>postgres</id>
+
+      <dependencies>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>42.6.0</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+
+      <properties>
+        <jdbc.password>postgres</jdbc.password>
+        <jdbc.url>jdbc:postgresql://localhost:15432/postgres</jdbc.url>
+        <jdbc.user>postgres</jdbc.user>
+      </properties>
+
+    </profile>
+
+    <profile>
+      <id>mysql</id>
+
+      <dependencies>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>8.0.22</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+
+      <properties>
+        <jdbc.password>root</jdbc.password>
+        <jdbc.url>
+          jdbc:mysql://localhost:13306/mysql?allowPublicKeyRetrieval=true&amp;useSSL=false&amp;allowMultiQueries=true</jdbc.url>
+        <jdbc.user>root</jdbc.user>
+      </properties>
+    </profile>
+  </profiles>
+</project>
