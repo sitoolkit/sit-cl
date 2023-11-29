@@ -128,14 +128,13 @@ class MainTest {
     setupDatabase();
     URL connectionPropUrl = getClass().getClassLoader().getResource("connection.properties");
     String connectionPropertiesPath = Paths.get(connectionPropUrl.toURI()).toString();
-    main.execute(new String[] {connectionPropertiesPath, "csvLoaderDirPath"});
+    String invalidDirPath = "csvLoaderDirPath";
 
-    String selectFromOrder =
-        "SELECT * FROM \"ORDER\""
-            .replace("\"", connection.getMetaData().getIdentifierQuoteString());
-
-    ResultSet rs = connection.createStatement().executeQuery(selectFromOrder);
-    assertFalse(rs.next());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          main.execute(new String[] {connectionPropertiesPath, invalidDirPath});
+        });
   }
 
   private void setupDatabase() throws Exception {

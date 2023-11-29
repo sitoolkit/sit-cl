@@ -3,18 +3,6 @@
   <condition property="mvn.cmd" value="${basedir}\mvnw.cmd" else="${basedir}\mvnw">
     <os family="windows" />
   </condition>
-
-  <condition property="profile.build-mode" value="">
-    <not>
-      <isset property="profile.build-mode" />
-    </not>
-  </condition>
-
-  <target name="setup-application">
-    <exec executable="${mvn.cmd}" dir="sit-csvloader-app" failonerror="true">
-      <arg line="clean install ${profile.build-mode}" />
-    </exec>
-  </target>
   
   <target name="set-version">
 

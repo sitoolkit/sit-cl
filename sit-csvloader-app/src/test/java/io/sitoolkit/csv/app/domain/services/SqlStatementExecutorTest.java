@@ -2,9 +2,9 @@ package io.sitoolkit.csv.app.domain.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -36,9 +36,9 @@ class SqlStatementExecutorTest {
   @Test
   void executeSqlStatementTest() throws Exception {
     URL sqlDirUrl = getClass().getClassLoader().getResource("csvloader");
-    File sqlDir = new File(Paths.get(sqlDirUrl.toURI()).toString());
+    Path sqlDirPath = Paths.get(sqlDirUrl.toURI());
 
-    sqlStatementExecutor.executeSqlStatement(connection, sqlDir);
+    sqlStatementExecutor.executeSqlStatement(connection, sqlDirPath.toString());
 
     DatabaseMetaData dbMetaData = connection.getMetaData();
     try (ResultSet rs = dbMetaData.getTables(null, null, "ORDER", null)) {
@@ -48,15 +48,15 @@ class SqlStatementExecutorTest {
 
   @Test
   void executeInvalidSqlStatementTest() throws URISyntaxException {
-    URL sqlDirUrl = getClass().getClassLoader().getResource("csvloader/invalidSql");
+    URL sqlDirUrl = getClass().getClassLoader().getResource("invalidSql");
     assertNotNull(sqlDirUrl, "SQL file URL should not be null");
 
-    File sqlDir = new File(Paths.get(sqlDirUrl.toURI()).toString());
+    Path sqlDirPath = Paths.get(sqlDirUrl.toURI());
 
     assertThrows(
         IllegalArgumentException.class,
         () -> {
-          sqlStatementExecutor.executeSqlStatement(connection, sqlDir);
+          sqlStatementExecutor.executeSqlStatement(connection, sqlDirPath.toString());
         });
   }
 
