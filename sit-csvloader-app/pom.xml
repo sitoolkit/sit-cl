@@ -12,18 +12,7 @@
     <relativePath>../</relativePath>
   </parent>
 
-  <properties>
-    <jdbc.password>sa</jdbc.password>
-    <jdbc.url>jdbc:h2:mem:test</jdbc.url>
-    <jdbc.user>sa</jdbc.user>
-  </properties>
-
   <dependencies>
-    <dependency>
-      <groupId>io.sitoolkit.csv</groupId>
-      <artifactId>sit-csvloader-flyway</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.sitoolkit.csv</groupId>
       <artifactId>sit-csvloader-core</artifactId>
@@ -82,6 +71,7 @@
     </testResources>
 
     <plugins>
+      <!-- TODO: #13897 - 動作確認用pluginのため実行可能jar作成時に削除する -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>

@@ -9,4 +9,8 @@ public class Logging implements LogCallback {
   public void info(String logMessage) {
     log.info(logMessage);
   }
+
+  public void error(String errorMessage) {
+    log.error(errorMessage);
+  }
 }

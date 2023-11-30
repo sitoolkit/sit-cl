@@ -1,10 +1,9 @@
-package io.sitoolkit.csv.app.interfaces;
+package io.sitoolkit.csv.app;
 
 import io.sitoolkit.csv.app.domain.services.PropertyLoader;
 import io.sitoolkit.csv.app.domain.services.ResourceDataFinder;
 import io.sitoolkit.csv.app.domain.services.SqlStatementExecutor;
 import io.sitoolkit.csv.app.domain.webdriver.WebDriver;
-import io.sitoolkit.csv.app.domain.webdriver.WebDriverImpl;
 import io.sitoolkit.csv.app.infra.log.Logging;
 import io.sitoolkit.csv.core.CsvLoader;
 import io.sitoolkit.csv.core.TableDataResource;
@@ -19,17 +18,19 @@ public class Main {
   private final PropertyLoader propertyLoader = new PropertyLoader();
   private final SqlStatementExecutor sqlFileExecutor = new SqlStatementExecutor();
   private final ResourceDataFinder resourceDataFinder = new ResourceDataFinder();
-  // Log log = LogFactory.getLog(getClass());
-  private final Logging log = new Logging();
+  private static final Logging log = new Logging();
 
   public static void main(String[] args) {
+    if (args.length < 2) {
+      log.error(
+          "usage: java -cp \"target/lib/*;target/classes\" io.sitoolkit.csv.app.Main"
+              + " <jdbcPropertyFilePath> <resourcesDirectoryPath>");
+      return;
+    }
     new Main().execute(args);
   }
 
   public void execute(String[] args) {
-    if (args.length < 2) {
-      throw new IllegalArgumentException("Missing arguments.");
-    }
 
     String jdbcPropPath = args[0];
     String resDirPath = args[1];
@@ -37,7 +38,7 @@ public class Main {
 
     try {
       Properties connectionProps = propertyLoader.loadProperties(jdbcPropPath);
-      WebDriver webDriver = new WebDriverImpl();
+      WebDriver webDriver = new WebDriver();
       connection = webDriver.createDatabaseConnection(connectionProps);
 
       sqlFileExecutor.executeSqlStatement(connection, resDirPath);

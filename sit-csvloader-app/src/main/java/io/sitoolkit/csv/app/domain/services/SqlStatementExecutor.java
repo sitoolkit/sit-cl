@@ -32,7 +32,7 @@ public class SqlStatementExecutor {
       throws IOException, SQLException {
     String sql = Files.readString(sqlFilePath);
     if (sql.trim().isEmpty()) {
-      throw new SQLException("Invalid SQL file: " + sqlFilePath);
+      throw new IOException("read SQL file is empty" + sqlFilePath);
     }
     try (Statement stmt = connection.createStatement()) {
       stmt.execute(sql);
