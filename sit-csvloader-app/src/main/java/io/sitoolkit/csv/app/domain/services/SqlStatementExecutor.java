@@ -32,10 +32,23 @@ public class SqlStatementExecutor {
       throws IOException, SQLException {
     String sql = Files.readString(sqlFilePath);
     if (sql.trim().isEmpty()) {
-      throw new IOException("read SQL file is empty" + sqlFilePath);
+      throw new IOException("SQL file is empty: " + sqlFilePath);
     }
-    try (Statement stmt = connection.createStatement()) {
-      stmt.execute(sql);
+
+    if (isDdl(sql)) {
+      try (Statement stmt = connection.createStatement()) {
+        stmt.execute(sql);
+      }
+    } else {
+      throw new SQLException(
+          "SQL statement is invalid. \n The only SQL statements that can be executed are DDL.");
     }
+  }
+
+  private boolean isDdl(String sql) {
+    String trimmedSql = sql.trim().toLowerCase();
+    return trimmedSql.startsWith("create")
+        || trimmedSql.startsWith("alter")
+        || trimmedSql.startsWith("drop");
   }
 }

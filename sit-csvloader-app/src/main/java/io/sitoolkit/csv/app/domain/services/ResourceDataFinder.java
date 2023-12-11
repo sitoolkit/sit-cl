@@ -2,6 +2,7 @@ package io.sitoolkit.csv.app.domain.services;
 
 import io.sitoolkit.csv.core.TableDataResource;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,46 +14,44 @@ import java.util.stream.Stream;
 
 public class ResourceDataFinder {
 
+  private static final String TABLE_LIST_FILE_NAME = "table-list.txt";
+
   public List<TableDataResource> findTableDataResources(String tableListFilePath)
       throws IOException {
     Path tableListPath = Paths.get(tableListFilePath);
     List<TableDataResource> tableDataResources = new ArrayList<>();
-    searchTableListFiles(tableListPath, tableDataResources);
+
+    try (Stream<Path> stream = Files.walk(tableListPath)) {
+      stream
+          .filter(Files::isRegularFile)
+          .filter(path -> path.getFileName().toString().equals(TABLE_LIST_FILE_NAME))
+          .forEach(tableList -> tableDataResources.addAll(readTableDataResources(tableList)));
+    } catch (IOException e) {
+      throw new IOException(e);
+    }
+
     return tableDataResources;
   }
 
-  private void searchTableListFiles(Path tableListPath, List<TableDataResource> tableDataResources)
-      throws IOException {
-    try (Stream<Path> paths = Files.list(tableListPath)) {
-      paths.forEach(tableList -> searchTableListFile(tableList, tableDataResources));
-    }
-  }
-
-  private void searchTableListFile(Path tableList, List<TableDataResource> tableDataResources) {
+  private List<TableDataResource> readTableDataResources(Path tableListPath) {
     try {
-      if (Files.isDirectory(tableList)) {
-        searchTableListFiles(tableList, tableDataResources);
-      } else if (tableList.getFileName().toString().equals("table-list.txt")) {
-        tableDataResources.addAll(readTableDataResources(tableList));
-      }
+      return Files.readAllLines(tableListPath).stream()
+          .map(tablePath -> createTableDataResource(tableListPath.getParent(), tablePath))
+          .collect(Collectors.toList());
     } catch (IOException e) {
-      throw new IllegalArgumentException(e);
+      throw new IllegalArgumentException(
+          "Failed to read" + TABLE_LIST_FILE_NAME + " : " + tableListPath, e);
     }
   }
 
-  private List<TableDataResource> readTableDataResources(Path tableListPath) throws IOException {
-    return Files.readAllLines(tableListPath).stream()
-        .map(tablePath -> createTableDataResource(tableListPath, tablePath))
-        .collect(Collectors.toList());
-  }
-
-  private TableDataResource createTableDataResource(Path tableListPath, String tablePath) {
-    String tableName = Paths.get(tablePath).getFileName().toString();
+  private TableDataResource createTableDataResource(Path directory, String tablePath) {
+    Path filePath = directory.resolve(tablePath + ".csv");
     try {
-      URL csvUrl = new URL("file", null, tableListPath.getParent() + "/" + tablePath + ".csv");
+      URL csvUrl = filePath.toUri().toURL();
+      String tableName = filePath.getFileName().toString().replace(".csv", "");
       return new TableDataResource(tableName, csvUrl);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(e);
+    } catch (MalformedURLException e) {
+      throw new IllegalArgumentException("Failed to create URL for CSV file: " + filePath, e);
     }
   }
 }
