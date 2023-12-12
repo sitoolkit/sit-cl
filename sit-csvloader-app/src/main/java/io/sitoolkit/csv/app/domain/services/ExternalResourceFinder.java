@@ -2,6 +2,7 @@ package io.sitoolkit.csv.app.domain.services;
 
 import io.sitoolkit.csv.core.TableDataResource;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -12,11 +13,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ResourceDataFinder {
+public class ExternalResourceFinder {
 
   private static final String TABLE_LIST_FILE_NAME = "table-list.txt";
 
-  public List<TableDataResource> findTableDataResources(String tableListFilePath)
+  public List<TableDataResource> findExternalTableDataResources(String tableListFilePath)
       throws IOException {
     Path tableListPath = Paths.get(tableListFilePath);
     List<TableDataResource> tableDataResources = new ArrayList<>();
@@ -27,7 +28,7 @@ public class ResourceDataFinder {
           .filter(path -> path.getFileName().toString().equals(TABLE_LIST_FILE_NAME))
           .forEach(tableList -> tableDataResources.addAll(readTableDataResources(tableList)));
     } catch (IOException e) {
-      throw new IOException(e);
+      throw new UncheckedIOException(e);
     }
 
     return tableDataResources;
@@ -39,19 +40,18 @@ public class ResourceDataFinder {
           .map(tablePath -> createTableDataResource(tableListPath.getParent(), tablePath))
           .collect(Collectors.toList());
     } catch (IOException e) {
-      throw new IllegalArgumentException(
-          "Failed to read" + TABLE_LIST_FILE_NAME + " : " + tableListPath, e);
+      throw new UncheckedIOException(e);
     }
   }
 
-  private TableDataResource createTableDataResource(Path directory, String tablePath) {
-    Path filePath = directory.resolve(tablePath + ".csv");
+  private TableDataResource createTableDataResource(Path externalDirectoryPath, String tablePath) {
+    Path csvFilePath = externalDirectoryPath.resolve(tablePath + ".csv");
     try {
-      URL csvUrl = filePath.toUri().toURL();
-      String tableName = filePath.getFileName().toString().replace(".csv", "");
+      URL csvUrl = csvFilePath.toUri().toURL();
+      String tableName = csvFilePath.getFileName().toString().replace(".csv", "");
       return new TableDataResource(tableName, csvUrl);
     } catch (MalformedURLException e) {
-      throw new IllegalArgumentException("Failed to create URL for CSV file: " + filePath, e);
+      throw new UncheckedIOException(e);
     }
   }
 }

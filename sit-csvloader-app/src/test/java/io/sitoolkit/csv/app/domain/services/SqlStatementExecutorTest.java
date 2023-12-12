@@ -1,6 +1,8 @@
 package io.sitoolkit.csv.app.domain.services;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -14,6 +16,9 @@ import java.util.Properties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SqlStatementExecutorTest {
 
@@ -46,18 +51,16 @@ class SqlStatementExecutorTest {
     }
   }
 
-  @Test
-  void executeInvalidSqlStatementTest() throws URISyntaxException {
-    URL sqlDirUrl = getClass().getClassLoader().getResource("invalidSql");
+  @ParameterizedTest
+  @ValueSource(strings = {"invalidSql/dml", "invalidSql/tcl", "invalidSql/dcl"})
+  void executeInvalidSqlStatementTest(String sqlPath) throws URISyntaxException {
+    URL sqlDirUrl = getClass().getClassLoader().getResource(sqlPath);
     assertNotNull(sqlDirUrl, "SQL file URL should not be null");
-
     Path sqlDirPath = Paths.get(sqlDirUrl.toURI());
 
-    assertThrows(
-        IllegalArgumentException.class,
-        () -> {
-          sqlStatementExecutor.executeSqlStatement(connection, sqlDirPath.toString());
-        });
+    Executable executable =
+        () -> sqlStatementExecutor.executeSqlStatement(connection, sqlDirPath.toString());
+    assertThrows(IllegalStateException.class, executable);
   }
 
   private void setupDatabase() throws Exception {

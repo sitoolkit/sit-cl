@@ -1,6 +1,7 @@
 package io.sitoolkit.csv.app.domain.services;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,8 +22,10 @@ public class SqlStatementExecutor {
               sqlFile -> {
                 try {
                   executeSqlFile(connection, sqlFile);
-                } catch (IOException | SQLException e) {
-                  throw new IllegalArgumentException(e);
+                } catch (SQLException e) {
+                  throw new IllegalStateException(e);
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
                 }
               });
     }
@@ -32,7 +35,7 @@ public class SqlStatementExecutor {
       throws IOException, SQLException {
     String sql = Files.readString(sqlFilePath);
     if (sql.trim().isEmpty()) {
-      throw new IOException("SQL file is empty: " + sqlFilePath);
+      throw new IOException("SQL file is empty:\n -> " + sqlFilePath + "/" + sql);
     }
 
     if (isDdl(sql)) {
@@ -41,7 +44,7 @@ public class SqlStatementExecutor {
       }
     } else {
       throw new SQLException(
-          "SQL statement is invalid. \n The only SQL statements that can be executed are DDL.");
+          "SQL statement is invalid. \nThe only SQL statements that can be executed are DDL.");
     }
   }
 

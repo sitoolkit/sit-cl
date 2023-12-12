@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -142,7 +143,7 @@ class MainTest {
     String csvLoaderDirPath = Paths.get(csvLoaderDirUrl.toURI()).toString();
 
     assertThrows(
-        IllegalArgumentException.class,
+        UncheckedIOException.class,
         () -> main.execute(new String[] {invalidPath, csvLoaderDirPath}));
   }
 
@@ -154,7 +155,7 @@ class MainTest {
     String invalidDirPath = "csvLoaderDirPath";
 
     assertThrows(
-        IllegalArgumentException.class,
+        UncheckedIOException.class,
         () -> {
           main.execute(new String[] {connectionPropertiesPath, invalidDirPath});
         });
