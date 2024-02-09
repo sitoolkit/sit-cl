@@ -1,0 +1,1 @@
+GRANT SELECT ON \"ORDER\" TO user;
